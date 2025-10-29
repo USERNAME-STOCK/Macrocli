@@ -1,0 +1,46 @@
+(
+    device: (
+        orientation: Normal,
+        rows: 3,
+        cols: 4,
+        knobs: 3,
+    ),
+    layers: [
+        (
+            buttons: [
+                [(delay: 0, mapping: "ctrl-x"), (delay: 0, mapping: "ctrl-c"), (delay: 0, mapping: "ctrl-v"), (delay: 100, mapping: "ctrl-s,ctrl-v,end,e,escape")],
+                [(delay: 0, mapping: "ctrl-z"), (delay: 0, mapping: "ctrl-y"), (delay: 0, mapping: "ctrl-a"), (delay: 0, mapping: "ctrl-f")],
+                [(delay: 0, mapping: "up"), (delay: 0, mapping: "down"), (delay: 0, mapping: "left"), (delay: 0, mapping: "right")]
+            ],
+            knobs: [
+                (ccw: (delay: 0, mapping: "wheelup"), press: (delay: 0, mapping: "mclick"), cw: (delay: 0, mapping: "wheeldown")),
+                (ccw: (delay: 0, mapping: "volumedown"), press: (delay: 0, mapping: "mute"), cw: (delay: 0, mapping: "volumeup")),
+                (ccw: (delay: 0, mapping: "home"), press: (delay: 0, mapping: "end"), cw: (delay: 0, mapping: "pagedown"))
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 0, mapping: "ctrl-t"), (delay: 0, mapping: "ctrl-w"), (delay: 0, mapping: "ctrl-shift-t"), (delay: 0, mapping: "f5")],
+                [(delay: 0, mapping: "ctrl-tab"), (delay: 0, mapping: "ctrl-shift-tab"), (delay: 0, mapping: "alt-tab"), (delay: 0, mapping: "alt-f4")],
+                [(delay: 0, mapping: "alt-left"), (delay: 0, mapping: "alt-right"), (delay: 0, mapping: "ctrl-d"), (delay: 0, mapping: "f12")]
+            ],
+            knobs: [
+                (ccw: (delay: 0, mapping: "ctrl-shift-tab"), press: (delay: 0, mapping: "ctrl-w"), cw: (delay: 0, mapping: "ctrl-tab")),
+                (ccw: (delay: 0, mapping: "alt-shift-tab"), press: (delay: 0, mapping: "alt-f4"), cw: (delay: 0, mapping: "alt-tab")),
+                (ccw: (delay: 0, mapping: "alt-left"), press: (delay: 0, mapping: "f5"), cw: (delay: 0, mapping: "alt-right"))
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 0, mapping: "play"), (delay: 0, mapping: "next"), (delay: 0, mapping: "previous"), (delay: 0, mapping: "stop")],
+                [(delay: 0, mapping: "volumeup"), (delay: 0, mapping: "volumedown"), (delay: 0, mapping: "mute"), (delay: 0, mapping: "calculator")],
+                [(delay: 0, mapping: "printscreen"), (delay: 0, mapping: "win-l"), (delay: 0, mapping: "win-e"), (delay: 0, mapping: "win-d")]
+            ],
+            knobs: [
+                (ccw: (delay: 0, mapping: "previous"), press: (delay: 0, mapping: "play"), cw: (delay: 0, mapping: "next")),
+                (ccw: (delay: 0, mapping: "volumedown"), press: (delay: 0, mapping: "mute"), cw: (delay: 0, mapping: "volumeup")),
+                (ccw: (delay: 0, mapping: "screenbrightnessdown"), press: (delay: 0, mapping: "calculator"), cw: (delay: 0, mapping: "screenbrightnessup"))
+            ],
+        )
+    ],
+)

@@ -1,0 +1,5 @@
+{
+  "name": "Macro Keyboard Visualizer",
+  "description": "An interactive application to visualize and inspect macro keyboard profiles. Select a profile to see the assigned functions on each key and knob, and hover over any control to view its detailed sequence and description.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,46 @@
+(
+    device: (
+        orientation: Normal,
+        rows: 3,
+        cols: 4,
+        knobs: 3,
+    ),
+    layers: [
+        (
+            buttons: [
+                [(delay: 0, mapping: "s,s,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 0, mapping: "ctrl-c"), (delay: 0, mapping: "ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 0, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,down,tab,tab")],
+                [(delay: 0, mapping: "enter"), (delay: 0, mapping: "enter"), (delay: 0, mapping: "b,s,s,shift-semicolon,n,n,n,n,shift-semicolon,p,p,p,p"), (delay: 0, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,tab,tab")],
+                [(delay: 0, mapping: "n,a,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 0, mapping: "ctrl-v"), (delay: 0, mapping: "ctrl-f,c,a,r,d,space,shift-semicolon,space,numpadenter,escape,right,shift-end,ctrl-c"), (delay: 0, mapping: "l")],
+            ],
+            knobs: [
+                (ccw: (delay: 100, mapping: "g,a,d,minus,i,b,shift-l,e,v,o,shift-l,2,enter"), press: (delay: 100, mapping: "ctrl-f-d-e-enter-escape-space-w-c-enter-tab-n-e-t-s"), cw: (delay: 100, mapping: "a,8,1,1,a,2,6,shift-2,e,i,k,a,dot,n,o,enter")),
+                (ccw: (delay: 0, mapping: "up"), press: (delay: 0, mapping: "ctrl-f-r-a-p-space-u-p-enter-escape-tab-tab-space"), cw: (delay: 0, mapping: "down")),
+                (ccw: (delay: 0, mapping: "shift-tab"), press: (delay: 0, mapping: "ctrl-f-r-a-p-space-u-p-escape-tab-tab-space"), cw: (delay: 0, mapping: "tab")),
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 50, mapping: "s,s,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 50, mapping: "ctrl-c"), (delay: 50, mapping: "ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 50, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,down,tab,tab")],
+                [(delay: 50, mapping: "enter"), (delay: 50, mapping: "enter"), (delay: 50, mapping: "b,s,s,shift-semicolon,n,n,n,n,shift-semicolon,p,p,p,p"), (delay: 50, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,tab,tab")],
+                [(delay: 50, mapping: "n,a,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 50, mapping: "ctrl-v"), (delay: 50, mapping: "ctrl-f,c,a,r,d,space,shift-semicolon,space,numpadenter,escape,right,shift-end,ctrl-c"), (delay: 50, mapping: "l")],
+            ],
+            knobs: [
+                (ccw: (delay: 100, mapping: "g,a,d,minus,i,b,shift-l,e,v,o,shift-l,2,enter"), press: (delay: 100, mapping: "ctrl-f-d-e-enter-escape-space-w-c-enter-tab-n-e-t-s"), cw: (delay: 100, mapping: "a,8,1,1,a,2,6,shift-2,e,i,k,a,dot,n,o,enter")),
+                (ccw: (delay: 50, mapping: "ctrl-f-r-a-p-space-u-p-enter-escape-down"), press: (delay: 50, mapping: "ctrl-f-e-n-t-shift-semicolon-enter-escape-tab"), cw: (delay: 50, mapping: "ctrl-f-r-a-p-space-u-p-enter-escape-down")),
+                (ccw: (delay: 50, mapping: "shift-tab"), press: (delay: 50, mapping: "enter-enter"), cw: (delay: 50, mapping: "tab")),
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 100, mapping: "s,s,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 100, mapping: "ctrl-c"), (delay: 100, mapping: "ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 100, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,down,tab,tab")],
+                [(delay: 100, mapping: "enter"), (delay: 100, mapping: "enter"), (delay: 100, mapping: "b,s,s,shift-semicolon,n,n,n,n,shift-semicolon,p,p,p,p"), (delay: 100, mapping: "ctrl-f,r,a,p,space,u,p,enter,escape,tab,tab,down,tab,tab")],
+                [(delay: 100, mapping: "n,a,ctrl-f,s,a,v,e,space,slash,space,enter,escape,enter"), (delay: 100, mapping: "ctrl-v"), (delay: 100, mapping: "ctrl-f,c,a,r,d,space,shift-semicolon,space,numpadenter,escape,right,shift-end,ctrl-c"), (delay: 100, mapping: "l")],
+            ],
+            knobs: [
+                (ccw: (delay: 100, mapping: "g,a,d,minus,i,b,shift-l,e,v,o,shift-l,2,enter"), press: (delay: 100, mapping: "ctrl-f-d-e-enter-escape-space-w-c-enter-tab-n-e-t-s"), cw: (delay: 100, mapping: "a,8,1,1,a,2,6,shift-2,e,i,k,a,dot,n,o,enter")),
+                (ccw: (delay: 100, mapping: "ctrl-f-r-a-p-space-u-p-enter-escape-down"), press: (delay: 100, mapping: "ctrl-f-e-n-t-shift-semicolon-enter-escape-tab"), cw: (delay: 100, mapping: "ctrl-f-r-a-p-space-u-p-enter-escape-down")),
+                (ccw: (delay: 100, mapping: "shift-tab"), press: (delay: 100, mapping: "enter-enter"), cw: (delay: 100, mapping: "tab")),
+            ],
+        ),
+    ],
+)

@@ -1,0 +1,18 @@
+# Rust & Cargo
+/Macrocli/target/
+/Macrocli/Cargo.lock
+
+# Node.js
+/Macrocli/Webapp/node_modules/
+/Macrocli/Webapp/dist/
+
+# IDE & Editor specific
+.vscode/
+.idea/
+.claude/
+docs/
+# OS-specific
+.DS_Store
+
+# Project Backups
+/Macrocli/macropad_backups/

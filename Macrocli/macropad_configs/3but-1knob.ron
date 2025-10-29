@@ -1,0 +1,22 @@
+(
+    device: (
+        orientation: Normal,
+        rows: 3,
+        cols: 4,
+        knobs: 3,
+    ),
+    layers: [
+        (
+            buttons: [
+                [(delay: 0, mapping: "shift-semicolon"), (delay: 0, mapping: "shift,semicolon"), (delay: 0, mapping: "ctrl-c"), (delay: 0, mapping: "ctrl,c")],
+                [(delay: 0, mapping: "alt-f4"), (delay: 0, mapping: "alt,f4"), (delay: 0, mapping: "shift-tab"), (delay: 0, mapping: "shift,tab")],
+                [(delay: 0, mapping: "ctrl-shift-escape"), (delay: 0, mapping: "ctrl,shift,escape"), (delay: 0, mapping: "win-r"), (delay: 0, mapping: "win,r")],
+            ],
+            knobs: [
+                (ccw: (delay: 0, mapping: "left"), press: (delay: 0, mapping: "enter"), cw: (delay: 0, mapping: "right")),
+                (ccw: (delay: 0, mapping: "up"), press: (delay: 0, mapping: "escape"), cw: (delay: 0, mapping: "down")),
+                (ccw: (delay: 0, mapping: "shift-tab"), press: (delay: 0, mapping: "tab"), cw: (delay: 0, mapping: "tab")),
+            ],
+        ),
+    ],
+)
