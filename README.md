@@ -44,6 +44,10 @@ The easiest way to get started is by using the web visualizer to create your con
 1.  **Create Layout**: Use the web interface to create one or more configuration layers (profiles). The application starts with a set of generic default profiles.
 2.  **Export Config**: Click the **Export .ron** button. This will download a `macropad_config.ron` file containing all the layers you've configured.
 3.  **Move Config File**: Move the downloaded `macropad_config.ron` into the `Macrocli/macropad_configs/` directory.
+<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/a3fc3c0f-291b-46c5-9875-ebede984aadc" />
+<img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/a0bff9cd-ad5c-4721-b07a-a164da1730e7" />
+<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/05fd2bef-ffb9-424a-8d8c-5082314d7aa6" />
+<img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/c7e05e8c-5e60-42b0-a239-12fca16f24f4" />
 
 ### Step 3: Build and Program with `macrocli`
 
