@@ -476,7 +476,8 @@ const App: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const ronString = await api.readConfig({ layer: 0 });
+      // Don't pass layer parameter to read all layers (layer 0 means all layers)
+      const ronString = await api.readConfig();
       const newProfiles = await parseRon(ronString);
       setProfiles(newProfiles);
       setSelectedProfileName(newProfiles[0]?.profileName || "");
