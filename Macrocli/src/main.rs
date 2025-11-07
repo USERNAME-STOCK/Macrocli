@@ -1,3 +1,4 @@
+mod api;
 mod config;
 mod consts;
 mod decoder;
@@ -29,12 +30,17 @@ use rusb::UsbContext as _;
 use strum::EnumMessage as _;
 use strum::IntoEnumIterator as _;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     env_logger::init();
     let options = Options::parse();
     debug!("options: {:?}", options.devel_options);
 
     match &options.command {
+        Command::Serve { port } => {
+            api::run_server(*port).await?;
+            return Ok(());
+        }
         Command::ShowKeys => {
             println!("Modifiers: ");
             for m in Modifier::iter() {
@@ -213,7 +219,7 @@ pub fn find_interface_and_endpoint(
         let descriptors = intf_desc.endpoint_descriptors();
         for endpoint in descriptors {
             // check packet size
-            if endpoint.max_packet_size() != (consts::PACKET_SIZE - 1).try_into()? {
+            if endpoint.max_packet_size() != ((consts::PACKET_SIZE - 1) as u16) {
                 continue;
             }
 

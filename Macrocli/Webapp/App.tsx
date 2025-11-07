@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { defaultProfiles } from "./data/defaultProfiles";
 import {
   MacroProfile,
@@ -13,6 +13,7 @@ import DetailsPanel from "./components/DetailsPanel";
 import EditKeyModal from "./components/EditKeyModal";
 import EditKnobModal from "./components/EditKnobModal";
 import { DownloadIcon, UploadIcon } from "./components/icons";
+import * as api from "./api/macrocliApi";
 
 const parseMapping = (mappingStr: string | undefined): string[] => {
   if (!mappingStr) return [];
@@ -241,6 +242,28 @@ const App: React.FC = () => {
   const [editingKey, setEditingKey] = useState<number | null>(null);
   const [editingKnob, setEditingKnob] = useState<KnobId | null>(null);
 
+  // Device connection state
+  const [deviceConnected, setDeviceConnected] = useState<boolean>(false);
+  const [deviceInfo, setDeviceInfo] = useState<api.DeviceInfo | null>(null);
+
+  // Check device connection on mount and periodically
+  useEffect(() => {
+    const checkDevice = async () => {
+      try {
+        const info = await api.getDevice();
+        setDeviceInfo(info);
+        setDeviceConnected(info.connected);
+      } catch (error) {
+        console.error("Failed to check device:", error);
+        setDeviceConnected(false);
+      }
+    };
+
+    checkDevice();
+    const interval = setInterval(checkDevice, 3000); // Check every 3 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   const handleProfileChange = useCallback((profile: MacroProfile) => {
     setSelectedProfileName(profile.profileName);
     setHoveredDetails(null);
@@ -324,7 +347,7 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
-  const handleExport = useCallback(() => {
+  const generateRonString = useCallback(() => {
     const formatMapping = (seq: string | string[]) => {
       if (!seq || seq.length === 0) return "";
       const sequence = Array.isArray(seq) ? seq : [seq];
@@ -383,7 +406,11 @@ const App: React.FC = () => {
     });
 
     ronString += `    ],\n)\n`;
+    return ronString;
+  }, [profiles]);
 
+  const handleExport = useCallback(() => {
+    const ronString = generateRonString();
     const blob = new Blob([ronString], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -393,7 +420,75 @@ const App: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [profiles]);
+  }, [generateRonString]);
+
+  const handleValidate = useCallback(async () => {
+    if (!deviceConnected) {
+      alert("Please connect your device first.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const ronString = generateRonString();
+      await api.validateConfig({
+        config_json: ronString,
+        device_connected: true,
+      });
+      alert("✓ Configuration is valid!");
+    } catch (error) {
+      alert(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deviceConnected, generateRonString]);
+
+  const handleProgramDevice = useCallback(async () => {
+    if (!deviceConnected) {
+      alert("Please connect your device first.");
+      return;
+    }
+
+    const confirmed = confirm(
+      "Are you sure you want to program the device with the current configuration?"
+    );
+    if (!confirmed) return;
+
+    setIsLoading(true);
+    try {
+      const ronString = generateRonString();
+      const result = await api.programDevice({
+        config_json: ronString,
+      });
+      alert(`✓ ${result}`);
+    } catch (error) {
+      alert(`Programming failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deviceConnected, generateRonString]);
+
+  const handleReadFromDevice = useCallback(async () => {
+    if (!deviceConnected) {
+      alert("Please connect your device first.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const ronString = await api.readConfig({ layer: 0 });
+      const newProfiles = await parseRon(ronString);
+      setProfiles(newProfiles);
+      setSelectedProfileName(newProfiles[0]?.profileName || "");
+      setHoveredDetails(null);
+      setEditingKey(null);
+      alert("✓ Configuration read from device successfully!");
+    } catch (error) {
+      alert(`Failed to read from device: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deviceConnected]);
 
   if (!selectedProfile) {
     return (
@@ -448,7 +543,18 @@ const App: React.FC = () => {
           </p>
         </header>
 
-        <div className="mb-8 flex justify-center items-center gap-3 bg-zinc-800 p-3 rounded-lg">
+        <div className="mb-4 flex justify-center items-center gap-2 bg-zinc-800 p-2 rounded-lg">
+          <div className={`px-3 py-1 rounded-md text-sm font-semibold ${deviceConnected ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+            {deviceConnected ? '● Device Connected' : '○ Device Disconnected'}
+          </div>
+          {deviceInfo && deviceConnected && (
+            <span className="text-xs text-gray-400">
+              (VID: 0x{deviceInfo.vendor_id.toString(16)} PID: 0x{deviceInfo.product_id.toString(16)})
+            </span>
+          )}
+        </div>
+
+        <div className="mb-8 flex justify-center items-center gap-3 bg-zinc-800 p-3 rounded-lg flex-wrap">
           <span className="font-semibold text-white">Select Profile:</span>
           {profiles.map((profile) => (
             <button
@@ -463,6 +569,9 @@ const App: React.FC = () => {
               {profile.profileName}
             </button>
           ))}
+        </div>
+
+        <div className="mb-8 flex justify-center items-center gap-3 bg-zinc-800 p-3 rounded-lg flex-wrap">
           <input
             type="file"
             ref={fileInputRef}
@@ -476,7 +585,7 @@ const App: React.FC = () => {
             title="Import a .ron configuration file"
           >
             <UploadIcon className="w-4 h-4" />
-            Import .ron
+            Import File
           </button>
           <button
             onClick={handleExport}
@@ -484,7 +593,46 @@ const App: React.FC = () => {
             title="Export all layers to a .ron configuration file"
           >
             <DownloadIcon className="w-4 h-4" />
-            Export .ron
+            Export File
+          </button>
+          <div className="w-px h-8 bg-zinc-600"></div>
+          <button
+            onClick={handleReadFromDevice}
+            disabled={!deviceConnected}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-lg ${
+              deviceConnected
+                ? 'bg-purple-600 text-white hover:bg-purple-500'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            }`}
+            title="Read configuration from connected device"
+          >
+            <UploadIcon className="w-4 h-4" />
+            Read from Device
+          </button>
+          <button
+            onClick={handleValidate}
+            disabled={!deviceConnected}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-lg ${
+              deviceConnected
+                ? 'bg-yellow-600 text-white hover:bg-yellow-500'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            }`}
+            title="Validate current configuration with connected device"
+          >
+            Validate
+          </button>
+          <button
+            onClick={handleProgramDevice}
+            disabled={!deviceConnected}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-lg ${
+              deviceConnected
+                ? 'bg-orange-600 text-white hover:bg-orange-500'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            }`}
+            title="Program the connected device with current configuration"
+          >
+            <DownloadIcon className="w-4 h-4" />
+            Program Device
           </button>
         </div>
 

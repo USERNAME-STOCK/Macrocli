@@ -13,6 +13,15 @@ pub struct Options {
     pub devel_options: DevelOptions,
 }
 
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            command: Command::ShowKeys,
+            devel_options: DevelOptions::default(),
+        }
+    }
+}
+
 #[derive(Args, Debug)]
 #[clap(
     hide(true),
@@ -38,6 +47,19 @@ pub struct DevelOptions {
 
     #[arg(long, hide = true)]
     pub interface_number: Option<u8>,
+}
+
+impl Default for DevelOptions {
+    fn default() -> Self {
+        Self {
+            vendor_id: VENDOR_ID,
+            product_id: None,
+            address: None,
+            out_endpoint_address: None,
+            in_endpoint_address: None,
+            interface_number: None,
+        }
+    }
 }
 
 /// Parses a hex or decimal value and returns the value as u16. Currently,
@@ -108,6 +130,13 @@ pub enum Command {
 
     /// Select LED backlight mode
     Led(LedCommand),
+
+    /// Start web server with API and frontend
+    Serve {
+        /// Port to run the server on
+        #[clap(short, long, default_value_t = 8080)]
+        port: u16,
+    },
 }
 
 #[derive(Parser, Clone, Default, Debug)]

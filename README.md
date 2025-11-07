@@ -2,8 +2,9 @@
 
 This project provides a suite of tools to program specific macropad devices (Vendor ID `0x1189`, Product IDs `0x8840`, `0x8842`, `0x8890`). It consists of:
 
-1.  **`macrocli`**: A Rust-based command-line tool for flashing configurations to the device, located in the `Macrocli/` directory.
-2.  **Webapp Visualizer**: A web-based interface for visually creating and editing macropad layouts, located in the `Macrocli/Webapp/` directory.
+1.  **`macrocli`**: A Rust-based command-line tool with integrated web server for device programming
+2.  **Webapp Visualizer**: A web-based interface for visually creating, editing, and programming macropad configurations
+3.  **REST API**: Backend API for device operations (validate, program, read, LED control)
 
 ## Repository Structure
 
@@ -19,66 +20,113 @@ The main components of this repository are:
     *   `Cargo.toml`: The Rust project manifest.
 *   `README.md`: The main project documentation file (this file).
 
-## Recommended Workflow: Web Visualizer
+## Recommended Workflow: Integrated Web Interface (NEW!)
 
-The easiest way to get started is by using the web visualizer to create your configuration.
+The easiest way to use macrocli is through the integrated web interface that combines the visualizer with direct device programming capabilities.
 
-### Step 1: Run the Web Visualizer
+### Quick Start
 
-1.  **Navigate to the web app directory:**
+1.  **Build the integrated server** (only needs to be done once):
     ```bash
-    cd Macrocli/Webapp/
+    cd Macrocli/
+    cargo build --release
     ```
-2.  **Install dependencies:**
+
+2.  **Build the web interface** (only needs to be done once):
     ```bash
+    cd Webapp/
     npm install
+    npm run build
+    cd ..
     ```
-3.  **Run the development server:**
+
+3.  **Start the integrated server**:
     ```bash
-    npm run dev
+    ./target/release/macrocli serve --port 8080
     ```
-4.  Open your browser to the local URL provided (e.g., `http://localhost:3000`).
 
-### Step 2: Create and Export Your Layout
+4.  **Open your browser** to `http://localhost:8080`
 
-1.  **Create Layout**: Use the web interface to create one or more configuration layers (profiles). The application starts with a set of generic default profiles.
-2.  **Export Config**: Click the **Export .ron** button. This will download a `macropad_config.ron` file containing all the layers you've configured.
-3.  **Move Config File**: Move the downloaded `macropad_config.ron` into the `Macrocli/macropad_configs/` directory.
+### Using the Integrated Interface
+
+The integrated interface provides a seamless experience:
+
+1.  **Device Status**: The interface automatically detects when your macropad is connected
+2.  **Create/Edit Layouts**: Use the visual editor to create one or more configuration layers (profiles)
+3.  **Validate**: Click the **Validate** button to check if your configuration is compatible with your device
+4.  **Program Device**: Click the **Program Device** button to directly flash your configuration to the device
+5.  **Read from Device**: Click the **Read from Device** button to import the current configuration from your device
+6.  **Export/Import**: Use **Export File** and **Import File** to save/load configurations as `.ron` files
+
 <img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/a3fc3c0f-291b-46c5-9875-ebede984aadc" />
 <img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/a0bff9cd-ad5c-4721-b07a-a164da1730e7" />
 <img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/05fd2bef-ffb9-424a-8d8c-5082314d7aa6" />
 <img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/c7e05e8c-5e60-42b0-a239-12fca16f24f4" />
 
-### Step 3: Build and Program with `macrocli`
+### Features
 
-Now, use the command-line tool to flash the configuration you just created.
+- ✅ Real-time device connection detection
+- ✅ Visual configuration editor with 3-layer support
+- ✅ Direct device programming from the web interface
+- ✅ Configuration validation against connected device
+- ✅ Read configurations from device
+- ✅ Import/Export `.ron` configuration files
+- ✅ No need to manually run CLI commands
 
-1.  **Build the CLI tool** (only needs to be done once):
-    ```bash
-    cd Macrocli/
-    cargo build --release
-    cd ..
-    ```
-2.  **Program the Device**: From the project root, run the program command:
-    ```bash
-    ./Macrocli/target/release/macrocli program -c ./Macrocli/macropad_configs/macropad_config.ron
-    ```
-3.  **Verify**: You can read the configuration back from the device to confirm it was programmed successfully:
-    ```bash
-    ./Macrocli/target/release/macrocli read
-    ```
+## API Endpoints
+
+When running in server mode (`macrocli serve`), the following REST API endpoints are available:
+
+- `GET /api/keys` - Get all supported keys and modifiers
+- `GET /api/device` - Check if a device is connected
+- `POST /api/validate` - Validate a configuration
+- `POST /api/program` - Program the device with a configuration
+- `GET /api/read?layer=N` - Read configuration from device
+- `POST /api/led` - Set LED color and mode
+
+All endpoints return JSON responses in the format:
+```json
+{
+  "success": true,
+  "data": { ... },
+  "error": null
+}
+```
 
 ## Advanced Usage: CLI-Only
 
 For advanced users, you can manually edit the `.ron` configuration files and use the CLI tool directly.
 
+### Available CLI Commands
+
+- **Start integrated server**:
+  ```bash
+  ./Macrocli/target/release/macrocli serve --port 8080
+  ```
+
+- **Program a device**:
+  ```bash
+  ./Macrocli/target/release/macrocli program -c ./Macrocli/macropad_configs/your_config.ron
+  ```
+
 - **Validate a config file**:
   ```bash
   ./Macrocli/target/release/macrocli validate -c ./Macrocli/macropad_configs/your_config.ron
   ```
+
+- **Read configuration from device**:
+  ```bash
+  ./Macrocli/target/release/macrocli read
+  ```
+
 - **List Supported Keys**:
   ```bash
   ./Macrocli/target/release/macrocli show-keys
+  ```
+
+- **Set LED mode**:
+  ```bash
+  ./Macrocli/target/release/macrocli led <index> <layer> [color]
   ```
 
 ## Setup for Linux (`udev` rules)

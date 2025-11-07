@@ -194,7 +194,7 @@ impl Mapping {
         // check rows/cols/knobs
         for (i, layer) in cfg.layers.iter().enumerate() {
             // row check
-            if layer.buttons.len() != cfg.device.rows.into() {
+            if layer.buttons.len() != cfg.device.rows as usize {
                 return Err(anyhow!(
                     "number of rows mismatch at layer {}. Expected {} rows found {}",
                     i + 1,
@@ -205,7 +205,7 @@ impl Mapping {
 
             // column check
             for (j, btn_mapping) in layer.buttons.iter().enumerate() {
-                if btn_mapping.len() != cfg.device.cols.into() {
+                if btn_mapping.len() != cfg.device.cols as usize {
                     return Err(anyhow!(
                         "number of colums mismatch at layer {} row {}. Expected {} columns found {}",
                         i + 1,
@@ -232,7 +232,7 @@ impl Mapping {
             }
 
             // knob check
-            if layer.knobs.len() != cfg.device.knobs.into() {
+            if layer.knobs.len() != cfg.device.knobs as usize {
                 return Err(anyhow!(
                     "number of knobs mismatch at layer {}. Expected {} knobs found {}",
                     i + 1,
