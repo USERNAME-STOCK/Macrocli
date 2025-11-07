@@ -264,9 +264,9 @@ pub fn create_router() -> Router {
         .route("/api/program", post(program_device))
         .route("/api/read", get(read_config))
         .route("/api/led", post(set_led))
-        // Serve the frontend static files
-        .nest_service("/", ServeDir::new("Webapp/dist"))
         .layer(cors)
+        // Serve the frontend static files
+        .fallback_service(ServeDir::new("Webapp/dist"))
 }
 
 /// Start the API server
