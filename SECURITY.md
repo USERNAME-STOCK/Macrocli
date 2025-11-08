@@ -1,95 +1,92 @@
-# 🔐 Security Policy
+# Security Policy
 
 ## Overview
 
-The Macrocli project takes security seriously and implements multiple layers of protection to ensure safe device programming and data integrity. This document outlines the security measures implemented and provides guidance for security researchers.
+Macrocli implements multiple security layers to ensure safe device programming and data integrity. This document outlines implemented security measures and vulnerability reporting procedures.
 
 ---
 
-## 🛡️ Security Features
+## Security Features
 
-### 1. Input Validation & Data Integrity
+### Input Validation & Data Integrity
 
 **Multi-Stage Validation Pipeline**
 
-All configuration data passes through a comprehensive validation pipeline before device programming:
+All configuration data undergoes validation before device programming:
 
 ```
 User Input → Type Validation → Schema Validation → Device Compatibility → Device Write
 ```
 
-#### Validation Layers:
+**Validation Layers:**
 
 1. **Type Safety (Compile-time)**
    - Rust's type system prevents type-related vulnerabilities
-   - No null pointer dereferences
-   - No buffer overflows from type confusion
+   - Eliminates null pointer dereferences and buffer overflows
 
 2. **Schema Validation (Runtime)**
-   - All input data validated against strict schemas
+   - Input data validated against strict schemas
    - Invalid configurations rejected before processing
-   - Proper error messages without information leakage
+   - Error messages designed to prevent information leakage
 
 3. **Device Compatibility Checks**
-   - Configuration validated against connected device capabilities
-   - Layer count verification
-   - Key mapping compatibility checks
+   - Configuration validated against device capabilities
+   - Layer count and key mapping verification
 
 4. **Binary Protocol Validation**
-   - Data encoded and verified before USB transmission
-   - Checksum validation where applicable
+   - Data verification before USB transmission
    - Protocol compliance enforcement
 
-### 2. Access Control & Privilege Management
+### Access Control & Privilege Management
 
 **Linux udev Rules**
 
-The project implements proper privilege separation using udev rules:
+Proper privilege separation implementation:
 
-- ✅ **Principle of Least Privilege**: No root access required
-- ✅ **User-level Permissions**: Device access via group membership
-- ✅ **Secure by Default**: Rules must be explicitly installed
+- Principle of least privilege (no root access required)
+- User-level device access via group membership
+- Explicit installation required (secure by default)
 
 ```bash
 # File: 80-macrocli.rules
 SUBSYSTEM=="usb", ATTR{idVendor}=="1189", MODE="0666"
 ```
 
-**Why This Matters:**
+Benefits:
 - Prevents privilege escalation attacks
-- Limits blast radius of potential vulnerabilities
+- Limits vulnerability impact radius
 - Follows Linux security best practices
 
-### 3. Memory Safety
+### Memory Safety
 
 **Rust Language Guarantees**
 
-The backend is written in Rust, providing:
+Backend written in Rust provides:
 
-- ✅ No buffer overflows
-- ✅ No use-after-free vulnerabilities
-- ✅ No data races in concurrent code
-- ✅ Memory safety without garbage collection overhead
+- No buffer overflows
+- No use-after-free vulnerabilities
+- No data races in concurrent code
+- Memory safety without garbage collection overhead
 
-These guarantees are enforced at compile-time, preventing entire classes of security vulnerabilities.
+Guarantees enforced at compile-time, preventing entire vulnerability classes.
 
-### 4. Device Authentication
+### Device Authentication
 
 **USB Device Verification**
 
-Before any operations, the system verifies:
+System verifies before operations:
 
-- ✅ USB Vendor ID (VID): `0x1189`
-- ✅ USB Product ID (PID): `0x8840`, `0x8842`, or `0x8890`
-- ✅ Device capability enumeration
+- USB Vendor ID (VID): `0x1189`
+- USB Product ID (PID): `0x8840`, `0x8842`, or `0x8890`
+- Device capability enumeration
 
-This prevents accidental programming of incorrect devices.
+Prevents accidental programming of incorrect devices.
 
-### 5. API Security
+### API Security
 
 **RESTful API Protection**
 
-The web API implements several security measures:
+Security measures implemented:
 
 1. **Input Sanitization**
    - All API inputs validated before processing
@@ -97,7 +94,7 @@ The web API implements several security measures:
 
 2. **Error Handling**
    - No sensitive information in error messages
-   - Generic error responses to prevent information leakage
+   - Generic error responses prevent information leakage
    - Detailed errors logged server-side only
 
 3. **CORS Configuration**
@@ -111,23 +108,23 @@ The web API implements several security measures:
 
 ---
 
-## ⚠️ Security Considerations for Users
+## Security Considerations
 
 ### Recommended Deployment
 
-**✅ Safe:**
-- Running on localhost (127.0.0.1)
-- Running on trusted local networks
-- Using for personal device configuration
+**Safe:**
+- Localhost (127.0.0.1) deployment
+- Trusted local networks
+- Personal device configuration
 
-**❌ Not Recommended:**
-- Exposing to public internet without authentication
-- Running on shared/untrusted networks
-- Using in multi-tenant environments without isolation
+**Not Recommended:**
+- Public internet exposure without authentication
+- Shared/untrusted networks
+- Multi-tenant environments without isolation
 
 ### Network Security
 
-If you must run the server on a network interface:
+If network binding required:
 
 ```bash
 # Bind to localhost only (default)
@@ -139,8 +136,6 @@ sudo ufw allow from 192.168.1.0/24 to any port 8080
 
 ### Configuration File Security
 
-**`.ron` Configuration Files:**
-
 - Treat configuration files as code
 - Review imported configurations before use
 - Store backup configurations securely
@@ -148,27 +143,27 @@ sudo ufw allow from 192.168.1.0/24 to any port 8080
 
 ---
 
-## 🐛 Reporting Security Vulnerabilities
+## Reporting Security Vulnerabilities
 
 We appreciate responsible disclosure of security vulnerabilities.
 
 ### Reporting Process
 
-**For security issues, please:**
+**For security issues:**
 
 1. **DO NOT** open public GitHub issues for security vulnerabilities
-2. Email security reports to: [Create issue privately on GitHub]
+2. Create private security advisory on GitHub or contact maintainers directly
 3. Include:
-   - Description of the vulnerability
+   - Vulnerability description
    - Steps to reproduce
    - Potential impact assessment
    - Suggested fixes (if any)
 
-### What to Expect
+### Response Timeline
 
 - **Initial Response**: Within 48 hours
 - **Status Updates**: Every 72 hours until resolution
-- **Fix Timeline**: Depends on severity
+- **Fix Timeline** (severity-dependent):
   - Critical: 7 days
   - High: 14 days
   - Medium: 30 days
@@ -178,15 +173,13 @@ We appreciate responsible disclosure of security vulnerabilities.
 
 Security researchers who responsibly disclose vulnerabilities will be:
 
-- Credited in the CHANGELOG (unless anonymity requested)
+- Credited in CHANGELOG (unless anonymity requested)
 - Thanked in project documentation
 - Added to security acknowledgments
 
 ---
 
-## 🔍 Security Best Practices for Contributors
-
-If you're contributing code to this project:
+## Security Best Practices for Contributors
 
 ### Code Review Checklist
 
@@ -195,16 +188,15 @@ If you're contributing code to this project:
 - [ ] Error messages don't leak sensitive information
 - [ ] No hardcoded credentials or secrets
 - [ ] Dependencies audited (`cargo audit`)
-- [ ] No SQL injection vectors (N/A for this project)
 - [ ] Proper error handling (no panics on user input)
 
 ### Testing Security Features
 
 ```bash
-# Run with validation testing
+# Run tests with validation
 cargo test
 
-# Check for known vulnerabilities in dependencies
+# Check for known vulnerabilities
 cargo audit
 
 # Check for unsafe code patterns
@@ -213,7 +205,7 @@ cargo clippy -- -W clippy::all
 
 ---
 
-## 📋 Security Audit History
+## Security Audit History
 
 | Date | Version | Auditor | Findings | Status |
 |------|---------|---------|----------|--------|
@@ -221,7 +213,7 @@ cargo clippy -- -W clippy::all
 
 ---
 
-## 🔗 Security Resources
+## Security Resources
 
 - [Rust Security Guidelines](https://anssi-fr.github.io/rust-guide/)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
@@ -230,21 +222,15 @@ cargo clippy -- -W clippy::all
 
 ---
 
-## ⚖️ Security Disclosure Policy
+## Disclosure Policy
 
-This project follows a **responsible disclosure** policy:
+Responsible disclosure policy:
 
-1. Researchers have 90 days to report vulnerabilities before public disclosure
-2. We aim to patch critical vulnerabilities within 7 days
+1. Researchers have 90 days to report before public disclosure
+2. Critical vulnerabilities patched within 7 days
 3. Public disclosure coordinated between reporter and maintainers
 4. CVEs assigned for significant vulnerabilities
 
 ---
 
-<div align="center">
-
-**🔒 Security is a shared responsibility**
-
-Users • Contributors • Maintainers
-
-</div>
+Security is a shared responsibility among users, contributors, and maintainers.

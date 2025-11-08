@@ -1,10 +1,10 @@
-# 🤝 Contributing to Macrocli
+# Contributing to Macrocli
 
-Thank you for your interest in contributing to Macrocli! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Macrocli. This document provides guidelines and instructions for contributing.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
@@ -18,19 +18,19 @@ Thank you for your interest in contributing to Macrocli! This document provides 
 
 ---
 
-## 📜 Code of Conduct
+## Code of Conduct
 
-This project adheres to a Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+This project adheres to a Code of Conduct. By participating, you are expected to uphold this code. Report unacceptable behavior to project maintainers.
 
 See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-Before contributing, ensure you have:
+Required tools:
 
 - **Rust**: Version 1.70 or higher
   ```bash
@@ -66,7 +66,7 @@ Before contributing, ensure you have:
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 ### Backend Setup (Rust)
 
@@ -102,36 +102,36 @@ cd ..
 
 ---
 
-## 🤝 How to Contribute
+## How to Contribute
 
 ### Types of Contributions
 
 We welcome:
 
-- 🐛 **Bug fixes**
-- ✨ **New features**
-- 📝 **Documentation improvements**
-- 🧪 **Test coverage**
-- 🎨 **UI/UX enhancements**
-- ♻️ **Code refactoring**
-- 🌐 **Translations** (future)
+- Bug fixes
+- New features
+- Documentation improvements
+- Test coverage
+- UI/UX enhancements
+- Code refactoring
+- Translations (future)
 
 ### Contribution Workflow
 
-1. **Check existing issues** - Search for existing issues or create a new one
-2. **Discuss first** - For large changes, discuss in an issue first
-3. **Create a branch** - Use descriptive branch names
+1. **Check existing issues** - Search for existing issues or create new one
+2. **Discuss first** - For large changes, discuss in issue first
+3. **Create branch** - Use descriptive branch names
 4. **Make changes** - Follow coding standards
 5. **Test thoroughly** - Ensure all tests pass
-6. **Submit PR** - Create a pull request with clear description
+6. **Submit PR** - Create pull request with clear description
 
 ---
 
-## 💻 Coding Standards
+## Coding Standards
 
 ### Rust Code Style
 
-We follow standard Rust conventions:
+Follow standard Rust conventions:
 
 ```bash
 # Format code
@@ -146,12 +146,12 @@ cargo check
 
 #### Rust Guidelines
 
-- ✅ Use descriptive variable names
-- ✅ Add documentation comments (`///`) for public APIs
-- ✅ Implement proper error handling (no unwrap in production code)
-- ✅ Use `Result<T, E>` for fallible operations
-- ✅ Avoid unsafe code unless absolutely necessary
-- ✅ Run `cargo clippy` before committing
+- Use descriptive variable names
+- Add documentation comments (`///`) for public APIs
+- Implement proper error handling (no unwrap in production code)
+- Use `Result<T, E>` for fallible operations
+- Avoid unsafe code unless absolutely necessary
+- Run `cargo clippy` before committing
 
 **Example:**
 
@@ -180,11 +180,11 @@ npm run format
 
 #### TypeScript Guidelines
 
-- ✅ Use TypeScript strict mode
-- ✅ Define proper interfaces/types
-- ✅ Use functional components with hooks
-- ✅ Follow React best practices
-- ✅ Add JSDoc comments for complex functions
+- Use TypeScript strict mode
+- Define proper interfaces/types
+- Use functional components with hooks
+- Follow React best practices
+- Add JSDoc comments for complex functions
 
 **Example:**
 
@@ -215,7 +215,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
+- `style`: Code style changes (formatting)
 - `refactor`: Code refactoring
 - `test`: Adding or updating tests
 - `chore`: Maintenance tasks
@@ -234,7 +234,7 @@ refactor(config): simplify configuration parser
 
 ---
 
-## 🧪 Testing Guidelines
+## Testing Guidelines
 
 ### Running Tests
 
@@ -299,7 +299,7 @@ describe('ConfigValidator', () => {
 
 ---
 
-## 🔄 Pull Request Process
+## Pull Request Process
 
 ### Before Submitting
 
@@ -354,7 +354,7 @@ Describe how you tested these changes
 
 ---
 
-## 🐛 Reporting Bugs
+## Reporting Bugs
 
 ### Before Reporting
 
@@ -386,7 +386,7 @@ Screenshots, configuration files, etc.
 
 ---
 
-## ✨ Suggesting Features
+## Suggesting Features
 
 ### Feature Request Template
 
@@ -406,7 +406,7 @@ Mockups, examples, use cases
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Documentation Standards
 
@@ -425,7 +425,7 @@ Mockups, examples, use cases
 
 ---
 
-## 🏆 Recognition
+## Recognition
 
 Contributors will be:
 
@@ -435,26 +435,20 @@ Contributors will be:
 
 ---
 
-## 📞 Getting Help
+## Getting Help
 
 Need help contributing?
 
-- 💬 **Discussions**: Use GitHub Discussions for questions
-- 🐛 **Issues**: Report bugs via GitHub Issues
-- 📧 **Email**: Contact maintainers directly for sensitive matters
+- **Discussions**: Use GitHub Discussions for questions
+- **Issues**: Report bugs via GitHub Issues
+- **Email**: Contact maintainers directly for sensitive matters
 
 ---
 
-## 📄 License
+## License
 
 By contributing to Macrocli, you agree that your contributions will be licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 
 ---
 
-<div align="center">
-
-**Thank you for contributing to Macrocli! 🎉**
-
-Every contribution, no matter how small, makes a difference.
-
-</div>
+Thank you for contributing to Macrocli. Every contribution, no matter how small, makes a difference.

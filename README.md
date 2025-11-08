@@ -1,26 +1,28 @@
 <div align="center">
 
-# 🎹 Macrocli - Advanced Macropad Configuration System
+# Macrocli - Advanced Macropad Configuration System
 
 [![License: CC BY-SA 3.0](https://img.shields.io/badge/License-CC%20BY--SA%203.0-blue.svg)](https://creativecommons.org/licenses/by-sa/3.0/)
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
-[![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/USERNAME-STOCK/Macrocli)
+[![Security](https://img.shields.io/badge/security-validated-brightgreen.svg)](SECURITY.md)
 
-**A production-grade device configuration tool showcasing data validation, security practices, and full-stack development**
+**Production-grade USB device configuration tool with emphasis on data validation, security, and integrity**
 
-[Features](#-key-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Skills Demonstrated](#-skills-demonstrated) • [API Documentation](#-api-reference)
+[Features](#key-features) • [Quick Start](#quick-start) • [Architecture](#architecture) • [Skills](#skills-demonstrated) • [API](#api-reference)
 
 </div>
 
 ---
 
-## 📋 Overview
+## Overview
 
-**Macrocli** is a comprehensive device configuration and management system for USB macropad devices (Vendor ID `0x1189`, Product IDs `0x8840`, `0x8842`, `0x8890`). This project demonstrates enterprise-level software development practices with emphasis on data integrity, validation, and security.
+Macrocli is a full-stack device configuration system for USB macropad devices (VID: `0x1189`, PIDs: `0x8840`, `0x8842`, `0x8890`). Built with Rust and React/TypeScript, it demonstrates enterprise software practices focused on data integrity, multi-layer validation, and secure device operations.
 
-### 🎯 System Components
+**Description:** A comprehensive tool for programming and managing USB macropad configurations through CLI and web interfaces. Implements robust validation pipelines, device authentication, and real-time configuration management with emphasis on security and data integrity.
+
+### System Components
 
 | Component | Technology Stack | Purpose |
 |-----------|-----------------|---------|
@@ -29,43 +31,38 @@
 | **Validation Engine** | Rust | Multi-layer data validation & integrity checking |
 | **API Layer** | RESTful JSON | Secure device operations interface |
 
-## 🌟 Skills Demonstrated
+## Skills Demonstrated
 
-This project showcases competencies highly relevant to **fraud analysis**, **data integrity**, and **security operations**:
+This project showcases competencies relevant to fraud analysis, data integrity, and security operations:
 
-### 🔍 Data Validation & Integrity
-- **Multi-layer validation pipeline** - Configuration data undergoes rigorous validation before device programming
-- **Input sanitization** - All user inputs are validated against strict schemas
-- **Data consistency checks** - Ensures configuration integrity across multiple device layers
-- **Error detection & reporting** - Comprehensive error handling with detailed diagnostic messages
+### Data Validation & Integrity
+- Multi-layer validation pipeline ensuring data accuracy before device programming
+- Input sanitization with strict schema enforcement
+- Cross-layer configuration consistency verification
+- Comprehensive error detection and diagnostic reporting
 
-### 🔒 Security & Access Control
-- **Device authentication** - Validates device identity via USB VID/PID verification
-- **Privilege management** - Implements udev rules for secure, non-root device access
-- **API security** - RESTful endpoints with proper error handling and validation
-- **Data integrity checks** - Verifies configuration data before device writes
+### Security & Access Control
+- USB device authentication via VID/PID verification
+- Linux privilege management through udev rules (non-root access)
+- API security with structured error handling
+- Pre-write data integrity verification
 
-### 📊 Analysis & Problem-Solving
-- **Pattern recognition** - Keyboard mapping and configuration pattern analysis
-- **Data parsing** - Complex binary protocol decoding and encoding
-- **Anomaly detection** - Identifies invalid configurations before deployment
-- **Root cause analysis** - Detailed error diagnostics and troubleshooting capabilities
+### Analysis & Problem-Solving
+- Pattern recognition in keyboard mappings and configurations
+- Binary protocol parsing and encoding
+- Invalid configuration detection and prevention
+- Root cause analysis with detailed diagnostics
 
-### 💻 Technical Proficiency
-- **Full-stack development** - Backend (Rust) + Frontend (React/TypeScript)
-- **API design** - RESTful architecture with comprehensive endpoint documentation
-- **System integration** - USB device communication, web server, frontend integration
-- **Documentation** - Clear, comprehensive technical documentation
-
-### 🎯 Attention to Detail
-- **Type-safe implementations** - Leverages Rust's type system for compile-time guarantees
-- **Comprehensive testing** - Validation logic for all data transformations
-- **Edge case handling** - Robust error handling for unexpected scenarios
-- **Code organization** - Clean architecture with separation of concerns
+### Technical Implementation
+- Full-stack development: Rust backend, React/TypeScript frontend
+- RESTful API architecture with comprehensive documentation
+- System integration: USB protocols, web server, client interface
+- Type-safe implementation leveraging Rust's compile-time guarantees
+- Clean architecture with separation of concerns
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 Macrocli/
@@ -87,21 +84,21 @@ Macrocli/
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- 🎨 **Visual Configuration Editor** - Intuitive web-based interface for creating device layouts
-- ✅ **Real-time Validation** - Instant feedback on configuration validity
-- 🔌 **Device Auto-Detection** - Automatic USB device discovery and connection
-- 💾 **Import/Export Functionality** - Save and load configurations as `.ron` files
-- 📡 **Live Device Programming** - Direct firmware updates via web interface
-- 🔄 **Configuration Backup** - Read and backup existing device configurations
-- 🎛️ **Multi-Layer Support** - Configure up to 3 independent layout layers
-- 🚀 **High Performance** - Built with Rust for maximum speed and reliability
-- 🔐 **Secure Access Control** - Proper privilege management for device access
+- **Visual Configuration Editor** - Web-based interface for device layout creation
+- **Real-time Validation** - Instant configuration validity feedback
+- **Device Auto-Detection** - Automatic USB device discovery
+- **Import/Export** - Save and load configurations as `.ron` files
+- **Live Device Programming** - Direct device flashing via web interface
+- **Configuration Backup** - Read and backup existing device configurations
+- **Multi-Layer Support** - Up to 3 independent layout layers
+- **High Performance** - Rust implementation for speed and reliability
+- **Secure Access Control** - Privilege management for device access
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -144,32 +141,32 @@ Navigate to `http://localhost:8080` and start configuring your device!
 
 ---
 
-## 🖥️ Web Interface Usage
+## Web Interface Usage
 
-The integrated web interface provides a complete device management experience:
+The integrated web interface provides complete device management:
 
 ### Workflow
 
-1. **🔌 Device Detection** - Interface automatically detects connected macropad
-2. **✏️ Visual Editing** - Create/modify configuration layouts with the visual editor
-3. **✅ Validation** - Click **Validate** to verify configuration compatibility
-4. **📤 Program Device** - Click **Program Device** to flash configuration
-5. **📥 Read from Device** - Import existing device configuration
-6. **💾 File Operations** - Export/import configurations as `.ron` files
+1. **Device Detection** - Automatic detection of connected macropad
+2. **Visual Editing** - Create and modify configuration layouts
+3. **Validation** - Verify configuration compatibility with device
+4. **Program Device** - Flash configuration to device
+5. **Read from Device** - Import existing device configuration
+6. **File Operations** - Export/import configurations as `.ron` files
 
-### Data Validation Workflow
+### Data Validation Pipeline
 
-The system implements a **multi-stage validation pipeline**:
+Multi-stage validation ensures data integrity:
 
 ```
-User Input → Schema Validation → Device Compatibility Check → Binary Encoding → Device Write
-     ↓              ↓                      ↓                         ↓               ↓
-  Type Check   Format Check         Hardware Check           Protocol Check    Success/Fail
+User Input → Schema Validation → Device Compatibility → Binary Encoding → Device Write
+     ↓              ↓                      ↓                    ↓               ↓
+  Type Check   Format Check         Hardware Check      Protocol Check    Success/Fail
 ```
 
-This validation approach ensures **100% data integrity** before any device modification.
+All configuration data is validated through multiple checkpoints before device modification.
 
-### 📸 Screenshots
+### Screenshots
 
 <details>
 <summary><b>Click to view application screenshots</b></summary>
@@ -183,7 +180,7 @@ This validation approach ensures **100% data integrity** before any device modif
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 The application runs as a REST API server when started with `macrocli serve`. All endpoints follow a consistent JSON response format with proper error handling.
 
@@ -239,7 +236,7 @@ All errors include descriptive messages in the response body.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### System Design
 
@@ -265,19 +262,19 @@ All errors include descriptive messages in the response body.
                   └──────────────────────┘
 ```
 
-### Key Design Principles
+### Design Principles
 
-- **Type Safety**: Rust's type system prevents entire classes of bugs at compile-time
-- **Memory Safety**: No buffer overflows or use-after-free vulnerabilities
-- **Input Validation**: All data validated before processing (defense in depth)
-- **Error Propagation**: Comprehensive error handling with detailed diagnostics
-- **Separation of Concerns**: Clear boundaries between API, validation, and device layers
+- **Type Safety** - Rust's type system prevents bugs at compile-time
+- **Memory Safety** - No buffer overflows or use-after-free vulnerabilities
+- **Input Validation** - Multi-layer data validation (defense in depth)
+- **Error Propagation** - Comprehensive error handling with diagnostics
+- **Separation of Concerns** - Clear boundaries between API, validation, and device layers
 
 ---
 
-## 💻 CLI Reference
+## CLI Reference
 
-For power users and automation, the CLI provides direct access to all functionality:
+Command-line interface for direct device operations and automation:
 
 ### Commands
 
@@ -303,7 +300,7 @@ For power users and automation, the CLI provides direct access to all functional
 
 ### Linux Security Configuration
 
-**Setting up non-root device access:**
+Non-root device access setup:
 
 ```bash
 # Copy udev rules
@@ -316,49 +313,49 @@ sudo udevadm trigger
 # Re-plug device to apply changes
 ```
 
-This security configuration demonstrates:
-- ✅ Principle of least privilege (no root required)
-- ✅ Proper Linux device permissions management
-- ✅ Secure multi-user system configuration
+This configuration implements:
+- Principle of least privilege (no root required)
+- Proper Linux device permissions management
+- Secure multi-user system configuration
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! This project follows professional development standards:
+This project follows professional development standards. All contributions must adhere to:
 
-- **Code Quality**: All code must pass Rust's strict compiler checks
-- **Documentation**: New features must include documentation
-- **Testing**: Validation logic should be thoroughly tested
-- **Security**: Follow secure coding practices
+- **Code Quality** - Pass Rust compiler checks and linting
+- **Documentation** - Document new features and changes
+- **Testing** - Test validation logic thoroughly
+- **Security** - Follow secure coding practices
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## 🔐 Security
+## Security
 
-This project implements several security best practices:
+Security best practices implemented:
 
-- Input validation at multiple layers
+- Multi-layer input validation
 - Principle of least privilege (non-root execution)
 - Type-safe memory management (Rust)
 - Device authentication via USB VID/PID
 - Secure error handling (no information leakage)
 
-For security concerns, please see [SECURITY.md](SECURITY.md).
+For security concerns, see [SECURITY.md](SECURITY.md).
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **Creative Commons Attribution-ShareAlike 3.0 Unported License**.
+Licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 
-See the [LICENSE](LICENSE) file for full details.
+See [LICENSE](LICENSE) for full details.
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 - Inspired by [eccherda/ch552g_mini_keyboard](https://github.com/eccherda/ch552g_mini_keyboard)
 - Built with [Rust](https://www.rust-lang.org/), [Axum](https://github.com/tokio-rs/axum), [React](https://reactjs.org/), and [TypeScript](https://www.typescriptlang.org/)
@@ -367,8 +364,6 @@ See the [LICENSE](LICENSE) file for full details.
 
 <div align="center">
 
-**⭐ If you find this project useful, please consider giving it a star!**
-
-Made with 💻 and ☕ | [Report Bug](https://github.com/USERNAME-STOCK/Macrocli/issues) | [Request Feature](https://github.com/USERNAME-STOCK/Macrocli/issues)
+[Report Bug](https://github.com/USERNAME-STOCK/Macrocli/issues) | [Request Feature](https://github.com/USERNAME-STOCK/Macrocli/issues)
 
 </div>
