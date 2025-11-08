@@ -1,153 +1,369 @@
-# `macrocli` - Macropad Programmer and Visualizer
+<div align="center">
 
-This project provides a suite of tools to program specific macropad devices (Vendor ID `0x1189`, Product IDs `0x8840`, `0x8842`, `0x8890`). It consists of:
+# Macrocli - Advanced Macropad Configuration System
 
-1.  **`macrocli`**: A Rust-based command-line tool with integrated web server for device programming
-2.  **Webapp Visualizer**: A web-based interface for visually creating, editing, and programming macropad configurations
-3.  **REST API**: Backend API for device operations (validate, program, read, LED control)
+[![License: CC BY-SA 3.0](https://img.shields.io/badge/License-CC%20BY--SA%203.0-blue.svg)](https://creativecommons.org/licenses/by-sa/3.0/)
+[![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
+[![Security](https://img.shields.io/badge/security-validated-brightgreen.svg)](SECURITY.md)
+
+**Production-grade USB device configuration tool with emphasis on data validation, security, and integrity**
+
+[Features](#key-features) • [Quick Start](#quick-start) • [Architecture](#architecture) • [Skills](#skills-demonstrated) • [API](#api-reference)
+
+</div>
+
+---
+
+## Overview
+
+Macrocli is a full-stack device configuration system for USB macropad devices (VID: `0x1189`, PIDs: `0x8840`, `0x8842`, `0x8890`). Built with Rust and React/TypeScript, it demonstrates enterprise software practices focused on data integrity, multi-layer validation, and secure device operations.
+
+**Description:** A comprehensive tool for programming and managing USB macropad configurations through CLI and web interfaces. Implements robust validation pipelines, device authentication, and real-time configuration management with emphasis on security and data integrity.
+
+### System Components
+
+| Component | Technology Stack | Purpose |
+|-----------|-----------------|---------|
+| **Backend CLI** | Rust + Axum | High-performance device communication & REST API server |
+| **Frontend UI** | React + TypeScript | Interactive visual configuration editor |
+| **Validation Engine** | Rust | Multi-layer data validation & integrity checking |
+| **API Layer** | RESTful JSON | Secure device operations interface |
+
+## Skills Demonstrated
+
+This project showcases competencies relevant to fraud analysis, data integrity, and security operations:
+
+### Data Validation & Integrity
+- Multi-layer validation pipeline ensuring data accuracy before device programming
+- Input sanitization with strict schema enforcement
+- Cross-layer configuration consistency verification
+- Comprehensive error detection and diagnostic reporting
+
+### Security & Access Control
+- USB device authentication via VID/PID verification
+- Linux privilege management through udev rules (non-root access)
+- API security with structured error handling
+- Pre-write data integrity verification
+
+### Analysis & Problem-Solving
+- Pattern recognition in keyboard mappings and configurations
+- Binary protocol parsing and encoding
+- Invalid configuration detection and prevention
+- Root cause analysis with detailed diagnostics
+
+### Technical Implementation
+- Full-stack development: Rust backend, React/TypeScript frontend
+- RESTful API architecture with comprehensive documentation
+- System integration: USB protocols, web server, client interface
+- Type-safe implementation leveraging Rust's compile-time guarantees
+- Clean architecture with separation of concerns
+
+---
 
 ## Repository Structure
 
-The main components of this repository are:
+```
+Macrocli/
+├── src/                      # Rust source code
+│   ├── main.rs              # Application entry point
+│   ├── api.rs               # REST API endpoints
+│   ├── config.rs            # Configuration validation logic
+│   ├── decoder.rs           # Device data decoding
+│   ├── mapping.rs           # Key mapping definitions
+│   └── keyboard/            # Device-specific implementations
+├── Webapp/                   # React TypeScript frontend
+│   ├── src/                 # Frontend source code
+│   └── public/              # Static assets
+├── macropad_configs/        # Configuration file storage (.ron)
+├── macropad_backups/        # Device backup storage
+├── 80-macrocli.rules        # Linux udev rules (security)
+└── Cargo.toml               # Rust dependencies
+```
 
-*   `Macrocli/`: Contains the core Rust project for the macropad programming tool.
-    *   `src/`: Source code for the Rust application.
-    *   `target/`: Compiled executables and libraries. The final binary is at `target/release/macrocli`.
-    *   `macropad_configs/`: Directory for storing custom macropad configuration files (`.ron` format).
-    *   `macropad_backups/`: Directory for storing backup configurations read from devices.
-    *   `Webapp/`: Contains the React/TypeScript project for the visual configuration editor.
-    *   `80-macrocli.rules`: A `udev` rule for granting non-root users access to the USB device on Linux.
-    *   `Cargo.toml`: The Rust project manifest.
-*   `README.md`: The main project documentation file (this file).
+---
 
-## Recommended Workflow: Integrated Web Interface (NEW!)
+## Key Features
 
-The easiest way to use macrocli is through the integrated web interface that combines the visualizer with direct device programming capabilities.
+- **Visual Configuration Editor** - Web-based interface for device layout creation
+- **Real-time Validation** - Instant configuration validity feedback
+- **Device Auto-Detection** - Automatic USB device discovery
+- **Import/Export** - Save and load configurations as `.ron` files
+- **Live Device Programming** - Direct device flashing via web interface
+- **Configuration Backup** - Read and backup existing device configurations
+- **Multi-Layer Support** - Up to 3 independent layout layers
+- **High Performance** - Rust implementation for speed and reliability
+- **Secure Access Control** - Privilege management for device access
 
-### Quick Start
+---
 
-1.  **Build the integrated server** (only needs to be done once):
-    ```bash
-    cd Macrocli/
-    cargo build --release
-    ```
+## Quick Start
 
-2.  **Build the web interface** (only needs to be done once):
-    ```bash
-    cd Webapp/
-    npm install
-    npm run build
-    cd ..
-    ```
+### Prerequisites
 
-3.  **Start the integrated server**:
-    ```bash
-    ./target/release/macrocli serve --port 8080
-    ```
+- Rust toolchain (1.70+)
+- Node.js (18+) and npm
+- USB macropad device (VID: `0x1189`, PID: `0x8840`/`0x8842`/`0x8890`)
 
-4.  **Open your browser** to `http://localhost:8080`
+### Installation & Setup
 
-### Using the Integrated Interface
+**Step 1: Build the Backend**
+```bash
+cd Macrocli/
+cargo build --release
+```
 
-The integrated interface provides a seamless experience:
+**Step 2: Build the Frontend**
+```bash
+cd Webapp/
+npm install
+npm run build
+cd ..
+```
 
-1.  **Device Status**: The interface automatically detects when your macropad is connected
-2.  **Create/Edit Layouts**: Use the visual editor to create one or more configuration layers (profiles)
-3.  **Validate**: Click the **Validate** button to check if your configuration is compatible with your device
-4.  **Program Device**: Click the **Program Device** button to directly flash your configuration to the device
-5.  **Read from Device**: Click the **Read from Device** button to import the current configuration from your device
-6.  **Export/Import**: Use **Export File** and **Import File** to save/load configurations as `.ron` files
+**Step 3: Configure Linux Permissions (Linux only)**
+```bash
+sudo cp 80-macrocli.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+# Re-plug your device
+```
 
-<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/a3fc3c0f-291b-46c5-9875-ebede984aadc" />
-<img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/a0bff9cd-ad5c-4721-b07a-a164da1730e7" />
-<img width="3440" height="1440" alt="image" src="https://github.com/user-attachments/assets/05fd2bef-ffb9-424a-8d8c-5082314d7aa6" />
-<img width="1807" height="1016" alt="image" src="https://github.com/user-attachments/assets/c7e05e8c-5e60-42b0-a239-12fca16f24f4" />
+**Step 4: Start the Server**
+```bash
+./target/release/macrocli serve --port 8080
+```
 
-### Features
+**Step 5: Open in Browser**
 
-- ✅ Real-time device connection detection
-- ✅ Visual configuration editor with 3-layer support
-- ✅ Direct device programming from the web interface
-- ✅ Configuration validation against connected device
-- ✅ Read configurations from device
-- ✅ Import/Export `.ron` configuration files
-- ✅ No need to manually run CLI commands
+Navigate to `http://localhost:8080` and start configuring your device!
 
-## API Endpoints
+---
 
-When running in server mode (`macrocli serve`), the following REST API endpoints are available:
+## Web Interface Usage
 
-- `GET /api/keys` - Get all supported keys and modifiers
-- `GET /api/device` - Check if a device is connected
-- `POST /api/validate` - Validate a configuration
-- `POST /api/program` - Program the device with a configuration
-- `GET /api/read?layer=N` - Read configuration from device
-- `POST /api/led` - Set LED color and mode
+The integrated web interface provides complete device management:
 
-All endpoints return JSON responses in the format:
+### Workflow
+
+1. **Device Detection** - Automatic detection of connected macropad
+2. **Visual Editing** - Create and modify configuration layouts
+3. **Validation** - Verify configuration compatibility with device
+4. **Program Device** - Flash configuration to device
+5. **Read from Device** - Import existing device configuration
+6. **File Operations** - Export/import configurations as `.ron` files
+
+### Data Validation Pipeline
+
+Multi-stage validation ensures data integrity:
+
+```
+User Input → Schema Validation → Device Compatibility → Binary Encoding → Device Write
+     ↓              ↓                      ↓                    ↓               ↓
+  Type Check   Format Check         Hardware Check      Protocol Check    Success/Fail
+```
+
+All configuration data is validated through multiple checkpoints before device modification.
+
+### Screenshots
+
+<details>
+<summary><b>Click to view application screenshots</b></summary>
+
+<img width="3440" height="1440" alt="Main Interface - Device Connected" src="https://github.com/user-attachments/assets/a3fc3c0f-291b-46c5-9875-ebede984aadc" />
+<img width="1807" height="1016" alt="Configuration Editor" src="https://github.com/user-attachments/assets/a0bff9cd-ad5c-4721-b07a-a164da1730e7" />
+<img width="3440" height="1440" alt="Multi-Layer Configuration" src="https://github.com/user-attachments/assets/05fd2bef-ffb9-424a-8d8c-5082314d7aa6" />
+<img width="1807" height="1016" alt="Validation and Programming" src="https://github.com/user-attachments/assets/c7e05e8c-5e60-42b0-a239-12fca16f24f4" />
+
+</details>
+
+---
+
+## API Reference
+
+The application runs as a REST API server when started with `macrocli serve`. All endpoints follow a consistent JSON response format with proper error handling.
+
+### Response Format
+
 ```json
 {
-  "success": true,
-  "data": { ... },
-  "error": null
+  "success": boolean,
+  "data": object | null,
+  "error": string | null
 }
 ```
 
-## Advanced Usage: CLI-Only
+### Available Endpoints
 
-For advanced users, you can manually edit the `.ron` configuration files and use the CLI tool directly.
+| Method | Endpoint | Description | Authentication |
+|--------|----------|-------------|----------------|
+| `GET` | `/api/keys` | Retrieve all supported keys and modifiers | None |
+| `GET` | `/api/device` | Check device connection status | None |
+| `POST` | `/api/validate` | Validate configuration data | None |
+| `POST` | `/api/program` | Program device with configuration | Device Required |
+| `GET` | `/api/read?layer=N` | Read configuration from device layer | Device Required |
+| `POST` | `/api/led` | Set LED color and mode | Device Required |
 
-### Available CLI Commands
+### Example API Calls
 
-- **Start integrated server**:
-  ```bash
-  ./Macrocli/target/release/macrocli serve --port 8080
-  ```
+**Check Device Connection**
+```bash
+curl http://localhost:8080/api/device
+```
 
-- **Program a device**:
-  ```bash
-  ./Macrocli/target/release/macrocli program -c ./Macrocli/macropad_configs/your_config.ron
-  ```
+**Validate Configuration**
+```bash
+curl -X POST http://localhost:8080/api/validate \
+  -H "Content-Type: application/json" \
+  -d @config.json
+```
 
-- **Validate a config file**:
-  ```bash
-  ./Macrocli/target/release/macrocli validate -c ./Macrocli/macropad_configs/your_config.ron
-  ```
+**Read Device Configuration**
+```bash
+curl http://localhost:8080/api/read?layer=0
+```
 
-- **Read configuration from device**:
-  ```bash
-  ./Macrocli/target/release/macrocli read
-  ```
+### Error Handling
 
-- **List Supported Keys**:
-  ```bash
-  ./Macrocli/target/release/macrocli show-keys
-  ```
+The API implements comprehensive error handling with detailed error messages:
 
-- **Set LED mode**:
-  ```bash
-  ./Macrocli/target/release/macrocli led <index> <layer> [color]
-  ```
+- `400 Bad Request` - Invalid input data or malformed requests
+- `404 Not Found` - Device not connected or resource unavailable
+- `500 Internal Server Error` - Unexpected server errors
 
-## Setup for Linux (`udev` rules)
+All errors include descriptive messages in the response body.
 
-To run `macrocli` without `sudo`, you need to set up a `udev` rule.
+---
 
-1.  Copy the `80-macrocli.rules` file to `/etc/udev/rules.d/`.
-    ```bash
-    sudo cp Macrocli/80-macrocli.rules /etc/udev/rules.d/
-    ```
-2.  Reload the `udev` rules.
-    ```bash
-    sudo udevadm control --reload-rules
-    sudo udevadm trigger
-    ```
-3.  Re-plug your macropad device.
+## Architecture
 
-## Acknowledgements
+### System Design
 
-The Rust-based CLI tool (`macrocli`) was inspired by the work of [eccherda/ch552g_mini_keyboard](https://github.com/eccherda/ch552g_mini_keyboard), which provides firmware and a programming tool for similar CH552G-based hardware.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Web Browser (Client)                    │
+│                   React + TypeScript Frontend                │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ HTTP/REST
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Rust Backend Server                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   API Layer  │  │  Validation  │  │   Encoding   │     │
+│  │   (Axum)     │→ │   Engine     │→ │   Engine     │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+└────────────────────────────┬────────────────────────────────┘
+                             │ USB Protocol
+                             ▼
+                  ┌──────────────────────┐
+                  │   USB Macropad       │
+                  │   Hardware Device    │
+                  └──────────────────────┘
+```
+
+### Design Principles
+
+- **Type Safety** - Rust's type system prevents bugs at compile-time
+- **Memory Safety** - No buffer overflows or use-after-free vulnerabilities
+- **Input Validation** - Multi-layer data validation (defense in depth)
+- **Error Propagation** - Comprehensive error handling with diagnostics
+- **Separation of Concerns** - Clear boundaries between API, validation, and device layers
+
+---
+
+## CLI Reference
+
+Command-line interface for direct device operations and automation:
+
+### Commands
+
+```bash
+# Start the integrated server
+./target/release/macrocli serve --port 8080
+
+# Program device with configuration file
+./target/release/macrocli program -c config.ron
+
+# Validate configuration without programming
+./target/release/macrocli validate -c config.ron
+
+# Read current device configuration
+./target/release/macrocli read
+
+# Display all supported keys
+./target/release/macrocli show-keys
+
+# Control LED settings
+./target/release/macrocli led <index> <layer> [color]
+```
+
+### Linux Security Configuration
+
+Non-root device access setup:
+
+```bash
+# Copy udev rules
+sudo cp Macrocli/80-macrocli.rules /etc/udev/rules.d/
+
+# Reload udev rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+# Re-plug device to apply changes
+```
+
+This configuration implements:
+- Principle of least privilege (no root required)
+- Proper Linux device permissions management
+- Secure multi-user system configuration
+
+---
+
+## Contributing
+
+This project follows professional development standards. All contributions must adhere to:
+
+- **Code Quality** - Pass Rust compiler checks and linting
+- **Documentation** - Document new features and changes
+- **Testing** - Test validation logic thoroughly
+- **Security** - Follow secure coding practices
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## Security
+
+Security best practices implemented:
+
+- Multi-layer input validation
+- Principle of least privilege (non-root execution)
+- Type-safe memory management (Rust)
+- Device authentication via USB VID/PID
+- Secure error handling (no information leakage)
+
+For security concerns, see [SECURITY.md](SECURITY.md).
+
+---
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. See the [LICENSE](LICENSE) file for details.
+Licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
+
+See [LICENSE](LICENSE) for full details.
+
+---
+
+## Acknowledgements
+
+- Inspired by [eccherda/ch552g_mini_keyboard](https://github.com/eccherda/ch552g_mini_keyboard)
+- Built with [Rust](https://www.rust-lang.org/), [Axum](https://github.com/tokio-rs/axum), [React](https://reactjs.org/), and [TypeScript](https://www.typescriptlang.org/)
+
+---
+
+<div align="center">
+
+[Report Bug](https://github.com/USERNAME-STOCK/Macrocli/issues) | [Request Feature](https://github.com/USERNAME-STOCK/Macrocli/issues)
+
+</div>
