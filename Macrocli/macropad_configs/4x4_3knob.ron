@@ -1,0 +1,49 @@
+(
+    device: (
+        orientation: Normal,
+        rows: 4,
+        cols: 4,
+        knobs: 3,
+    ),
+    layers: [
+        (
+            buttons: [
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+            ],
+            knobs: [
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+            ],
+           knobs: [
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+            ],
+        ),
+        (
+            buttons: [
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                 [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+                [(delay: 0, mapping: "1"), (delay: 0, mapping: "2"), (delay: 0, mapping: "3"), (delay: 0, mapping: "4")],
+            ],
+           knobs: [
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+                (ccw: (delay: 0, mapping: "k,l"), press: (delay: 0, mapping: "k,p"), cw: (delay: 0, mapping: "k,r")),
+            ],
+        ),
+    ],
+)

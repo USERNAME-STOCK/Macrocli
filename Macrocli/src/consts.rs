@@ -2,7 +2,8 @@ use std::time::Duration;
 
 // Supported devices listed by vendor/product IDs
 pub const VENDOR_ID: u16 = 0x1189;
-pub const PRODUCT_IDS: [u16; 3] = [0x8840, 0x8842, 0x8890];
+pub const VENDOR_ID_QH: u16 = 0x514c; // QingHeng Electronics VID
+pub const PRODUCT_IDS: [u16; 4] = [0x8840, 0x8842, 0x8890, 0x8850];
 
 /// Timeout for reading from USB
 ///
@@ -26,6 +27,10 @@ pub const MAX_KEY_PRESSES_884X: usize = 17;
 /// for a 0x8890 macropad
 ///
 pub const MAX_KEY_PRESSES_8890: usize = 5;
+
+/// Maximum number of key presses for 8850 (65 byte payload / 3 bytes per key ~= 18-19)
+///
+pub const MAX_KEY_PRESSES_8850: usize = 18;
 
 /// Maximum delay for a keypress
 ///

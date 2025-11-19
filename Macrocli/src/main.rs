@@ -10,7 +10,7 @@ mod parse;
 use crate::consts::PRODUCT_IDS;
 use crate::decoder::Decoder;
 use crate::keyboard::{
-    k884x, k8890, Keyboard, MediaCode, Modifier, MouseAction, MouseButton, WellKnownCode,
+    k884x, k8890, k8850, Keyboard, MediaCode, Modifier, MouseAction, MouseButton, WellKnownCode,
 };
 use crate::mapping::Macropad;
 use crate::options::Options;
@@ -297,6 +297,8 @@ fn open_keyboard(options: &Options) -> Result<Box<dyn Keyboard>> {
         }
         0x8890 => k8890::Keyboard8890::new(Some(handle), endpt_addr_out)
             .map(|v| Box::new(v) as Box<dyn Keyboard>),
+        0x8850 => k8850::Keyboard8850::new(Some(handle), endpt_addr_out)
+            .map(|v| Box::new(v) as Box<dyn Keyboard>),
         _ => unreachable!("This shouldn't happen!"),
     }
 }
@@ -326,13 +328,16 @@ pub fn find_device(vid: u16, pid: Option<u16>) -> Result<(Device<Context>, Devic
         );
         let product_id = desc.product_id();
 
-        if desc.vendor_id() == vid {
+        // Check BOTH Vendor IDs
+        if desc.vendor_id() == vid || desc.vendor_id() == consts::VENDOR_ID_QH {
             if let Some(prod_id) = pid {
                 if PRODUCT_IDS.contains(&prod_id) {
                     found.push((device, desc, product_id));
                 }
             } else {
-                found.push((device, desc, product_id));
+                if PRODUCT_IDS.contains(&product_id) {
+                    found.push((device, desc, product_id));
+                }
             }
         }
     }
