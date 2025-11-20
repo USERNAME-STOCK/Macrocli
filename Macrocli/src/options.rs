@@ -130,13 +130,6 @@ pub enum Command {
 
     /// Select LED backlight mode
     Led(LedCommand),
-
-    /// Start web server with API and frontend
-    Serve {
-        /// Port to run the server on
-        #[clap(short, long, default_value_t = 8080)]
-        port: u16,
-    },
 }
 
 #[derive(Parser, Clone, Default, Debug)]
