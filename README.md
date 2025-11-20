@@ -63,16 +63,22 @@ This project showcases competencies relevant to fraud analysis, data integrity, 
 
 ```
 Macrocli/
-├── src/                      # Rust source code
-│   ├── main.rs              # Application entry point & CLI commands
-│   ├── config.rs            # Configuration validation logic
-│   ├── decoder.rs           # Device data decoding
-│   ├── mapping.rs           # Key mapping definitions
-│   ├── options.rs           # CLI argument parsing
-│   └── keyboard/            # Device-specific implementations
-├── macropad_configs/        # Configuration file storage (.ron)
-├── 80-macrocli.rules        # Linux udev rules (security)
-└── Cargo.toml               # Rust dependencies
+├── Macrocli/                 # Main application directory
+│   ├── src/                  # Rust source code
+│   │   ├── main.rs          # CLI entry point and commands
+│   │   ├── config.rs        # Configuration validation
+│   │   ├── decoder.rs       # Device data decoding
+│   │   ├── mapping.rs       # Key mapping definitions
+│   │   ├── options.rs       # CLI argument parsing
+│   │   └── keyboard/        # Device implementations (k884x, k8890, k8850)
+│   ├── macropad_configs/    # Example configuration templates
+│   │   ├── 12but-3layer-3knobs.ron  # 3x4 keyboard template
+│   │   ├── 3but-1knob.ron           # 3-button template
+│   │   └── 4x4_3knob.ron            # 4x4 keyboard template
+│   ├── 80-macrocli.rules    # Linux udev rules
+│   └── Cargo.toml           # Rust dependencies
+├── LICENSE                   # CC BY-SA 3.0 License
+└── README.md                # This file
 ```
 
 ---
@@ -80,7 +86,6 @@ Macrocli/
 ## Key Features
 
 - **Command-Line Interface** - Efficient CLI for device configuration and management
-- **Configuration Validation** - Multi-layer validation before device programming
 - **Device Auto-Detection** - Automatic USB device discovery
 - **Import/Export** - Save and load configurations as `.ron` files
 - **Direct Device Programming** - Flash configurations directly to device
