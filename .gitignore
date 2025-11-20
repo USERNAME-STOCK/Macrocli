@@ -16,4 +16,9 @@ docs/
 
 # Project Backups
 /Macrocli/macropad_backups/
+
+# User-specific configurations (keep only default templates)
+Macrocli/macropad_configs/config.ron
 Macrocli/macropad_configs/k8850.ron
+Macrocli/macropad_configs/oldthree_layer_final.ron
+Macrocli/macropad_configs/three_layer_final.ron
