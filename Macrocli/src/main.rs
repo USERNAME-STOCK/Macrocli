@@ -1,4 +1,3 @@
-mod api;
 mod config;
 mod consts;
 mod decoder;
@@ -30,17 +29,12 @@ use rusb::UsbContext as _;
 use strum::EnumMessage as _;
 use strum::IntoEnumIterator as _;
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     env_logger::init();
     let options = Options::parse();
     debug!("options: {:?}", options.devel_options);
 
     match &options.command {
-        Command::Serve { port } => {
-            api::run_server(*port).await?;
-            return Ok(());
-        }
         Command::ShowKeys => {
             println!("Modifiers: ");
             for m in Modifier::iter() {
