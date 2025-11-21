@@ -43,12 +43,14 @@ impl Configuration for Keyboard8850 {
         let layers_to_read: Vec<u8> = if *layer > 0 {
             vec![*layer]
         } else {
+            info!("Reading all layers (1-3)...");
             vec![1, 2, 3]
         };
 
         for target_layer in layers_to_read {
             // Check if we already have this layer (e.g. from a previous multi-layer response)
             if received_layers[target_layer as usize] {
+                debug!("Layer {} already received, skipping request.", target_layer);
                 continue;
             }
 
