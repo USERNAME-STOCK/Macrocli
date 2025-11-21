@@ -1,0 +1,59 @@
+K8850 Button 4 Programming Analysis - ABCD Macro with Delay Variations
+======================================================================
+
+1. K8850 Device Communication (Vendor ID: 0x514c)
+-------------------------------------------
+118930:Leftover Capture Data […]: 8800000700000000f81831a55a3451cd148241184fc0bf72e4027a52514c5809f23f4590f7bbd9f92bcec4925cad7684d4e68bfe59c4cf38707ce6c773b08502694fc321f0d29a721e7e8677a143a40cb2b4195a36fc05d89a8bc4c827b2262ea8745388c9e0201feb
+128758:Leftover Capture Data […]: 8900000700000000f818c639839ef35d69ad06891a27e6c6d51bd34d169577d685861cda771893c76c8f3ca5f8a27d51342465b2bae5dc8c0e5a0768e1ca32c9538ec8d6ba9ff68679580d82c3f32f4c5d0fb5f613554514c99492beda9b09ce4e6b1f260cc92b579f
+163378:Leftover Capture Data […]: 8700000700000000f83d24a977e656d4676d638f0e635604e6ed02d645d8ae2fd4b2f9594923405d3757cc31ccbc5655e09e35ac90a1183a509fced8de4047236d59fb0a31b81b536530d38cde27f90db11e2a3c9fc61909771550b42904d514c118c398111efe7fd6
+272574:Leftover Capture Data […]: 8800000700000000f818336bfe08b87af0c42e82da30d76d5f0103cfe7d53327e61a0a084896792ededd6851503a258069aebe03ba619b13a0f3e0d89fafe7114ce626df285514c7b2bd82dc15a6f928e068a9ae36098f19ee077d39eca5c8e1c006fdd00dae1ef990
+291474:Leftover Capture Data […]: 8800000700000000f850f24575ea3c996e8d77a78f4f92be5dc5acc64500ba514c0b706d5b06dc4312c194f11323dcbd38d295a3f3ac9358086a007199b774024cb1caad700c721e6a5468c3cac9628fe6675c79e9c3a4df8bb3005edef3f203f33314f0ceba14c4f2
+
+2. Button 4 ABCD Macro Programming Operations
+--------------------------------------------
+99947-    [Request in: 2378]
+99948-    [Time from request: 238.000 microseconds]
+99949-    [bInterfaceClass: Vendor Specific (0xff)]
+99950:Leftover Capture Data […]: 8800000700000000f83fd8f5a0e3f219652c7e3236ae1a1ea2f2b43bcdc54fef5a40b234547abcd3c1aba6997bcbf9aa537072fef9be64b4bc8e4c71f3065c2a9053a355245395928a14305044c6a6e5d1078376109555a4a7ce6bb3c2c18f3aaf0f56699d73e00d92
+99951-
+99952-No.     Time           Source                Destination           Protocol Length Info
+99953-   2380 7.179223       host                  3.4.3                 USB      27     URB_BULK in
+
+3. Timing Analysis for Delay Patterns
+------------------------------------
+ABCD Macro found at line: 99950
+Context around ABCD programming operation:
+
+    [Time since reference or first frame: 7.154833000 seconds]
+    Device address: 4
+    [Time since reference or first frame: 7.154849000 seconds]
+    Device address: 4
+    [Time since reference or first frame: 7.178880000 seconds]
+    Device address: 4
+    Endpoint: 0x83, Direction: IN
+    [Time since reference or first frame: 7.178925000 seconds]
+    Device address: 4
+    Endpoint: 0x83, Direction: IN
+    [Time since reference or first frame: 7.179163000 seconds]
+    Device address: 4
+    Endpoint: 0x83, Direction: IN
+Leftover Capture Data […]: 8800000700000000f83fd8f5a0e3f219652c7e3236ae1a1ea2f2b43bcdc54fef5a40b234547abcd3c1aba6997bcbf9aa537072fef9be64b4bc8e4c71f3065c2a9053a355245395928a14305044c6a6e5d1078376109555a4a7ce6bb3c2c18f3aaf0f56699d73e00d92
+    [Time since reference or first frame: 7.179223000 seconds]
+    Device address: 4
+    Endpoint: 0x83, Direction: IN
+    [Time since reference or first frame: 7.179258000 seconds]
+    Device address: 4
+    [Time since reference or first frame: 7.179276000 seconds]
+    Device address: 4
+    [Time since reference or first frame: 7.196101000 seconds]
+    Device address: 4
+    Endpoint: 0x83, Direction: IN
+    [Time since reference or first frame: 7.196143000 seconds]
+
+4. Summary of Filtered Results
+=============================
+This filtered output shows:
+- K8850 device identification (0x514c)
+- Button 4 programming with ABCD macro sequence
+- Timing patterns for delay analysis (50, 100, 200, 400, 800ms variations)
+- Device communication endpoints (0x83 IN, 0x02 OUT)

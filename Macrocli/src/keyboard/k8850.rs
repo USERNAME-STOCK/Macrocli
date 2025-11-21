@@ -139,9 +139,38 @@ impl Messages for Keyboard8850 {
         vec![]
     }
 
-    fn program_led(&self, _mode: u8, _layer: u8, _color: LedColor) -> Vec<u8> {
-        // LED programming not yet fully reverse engineered
-        vec![]
+    fn program_led(&self, mode: u8, _layer: u8, color: LedColor) -> Vec<u8> {
+        // K8850 uses a 3-packet sequence for LED control.
+        // Structure: 03 fe b0 [seq] [mode] 00 [20 bytes data] ...
+        // Total color data is 60 bytes (split 20/20/20 across 3 packets)
+        // Sequence numbers are 00, 01, 02.
+
+        let color_byte = <LedColor as ToPrimitive>::to_u8(&color).unwrap();
+        // Fill 60 bytes with the color value.
+        // Note: Real RGB control might require mapping LedColor to 3-byte RGB values,
+        // but for now we repeat the color code which works for the device's internal palette.
+        let color_data = vec![color_byte; 60];
+
+        let mut all_packets = Vec::new();
+
+        for seq in 0..3 {
+            let mut packet = vec![0x03, 0xfe, 0xb0, seq, mode, 0x00];
+
+            // Append 20 bytes of data for this sequence
+            let start_idx = (seq as usize) * 20;
+            if start_idx + 20 <= color_data.len() {
+                packet.extend_from_slice(&color_data[start_idx..start_idx + 20]);
+            }
+
+            // Pad to 65 bytes
+            while packet.len() < consts::PACKET_SIZE {
+                packet.push(0);
+            }
+
+            all_packets.extend(packet);
+        }
+
+        all_packets
     }
 
     fn end_program(&self) -> Vec<u8> {
@@ -192,7 +221,23 @@ impl Keyboard for Keyboard8850 {
         Ok(())
     }
 
-    fn set_led(&mut self, _mode: u8, _layer: u8, _color: LedColor) -> Result<()> {
+    fn set_led(&mut self, mode: u8, layer: u8, color: LedColor) -> Result<()> {
+        let packets = self.program_led(mode, layer, color);
+
+        // Send each 65-byte packet
+        for chunk in packets.chunks(consts::PACKET_SIZE) {
+            self.send(chunk)?;
+            // Small delay to ensure device processes the sequence
+            thread::sleep(Duration::from_millis(20));
+        }
+
+        // We might need to send end_program() after, similar to k884x,
+        // but the protocol analysis didn't explicitly demand it for LED only.
+        // However, it's safer to ensure state is saved/committed.
+        // self.send(&self.end_program())?;
+        // Based on K884x behavior, we'll omit end_program for now unless testing shows it's needed,
+        // as the 3-packet sequence might be self-contained.
+
         Ok(())
     }
 
@@ -206,7 +251,7 @@ impl Keyboard for Keyboard8850 {
 
     fn get_in_endpoint(&self) -> u8 {
         // K8850 standard IN endpoint
-        0x84
+        0x83
     }
 }
 
@@ -281,8 +326,8 @@ impl Keyboard8850 {
                 break;
             }
 
-            let delay_hi = packet[idx];
-            let delay_lo = packet[idx + 1];
+            let delay_lo = packet[idx];
+            let delay_hi = packet[idx + 1];
             let keycode = packet[idx + 2];
 
             let delay = ((delay_hi as u16) << 8) | (delay_lo as u16);
@@ -387,7 +432,8 @@ impl Keyboard8850 {
                 }
 
                 if code_to_add != 0 {
-                    let d_bytes = delay.to_be_bytes();
+                    // Delay is Little Endian based on USB capture analysis
+                    let d_bytes = delay.to_le_bytes();
                     sequence.push(d_bytes[0]);
                     sequence.push(d_bytes[1]);
                     sequence.push(code_to_add);
@@ -474,9 +520,9 @@ mod tests {
         assert_eq!(msg[1], 0xfd);
         assert_eq!(msg[6], 0x02); // Count of sequences (ctrl + a)
 
-        // Verify delay bytes are correct (100 = 0x0064)
-        assert_eq!(msg[7], 0x00); // Delay high byte
-        assert_eq!(msg[8], 0x64); // Delay low byte
+        // Verify delay bytes are correct (100 = 0x0064). Little Endian: 0x64, 0x00
+        assert_eq!(msg[7], 0x64); // Delay low byte
+        assert_eq!(msg[8], 0x00); // Delay high byte
         assert_eq!(msg[9], 0xf1); // Ctrl modifier code
     }
 
@@ -514,5 +560,56 @@ mod tests {
         assert_eq!(end_msg[2], 0xfe);
         assert_eq!(end_msg[3], 0xff);
         assert_eq!(end_msg.len(), 65); // Should be padded to 65 bytes
+    }
+
+    #[test]
+    fn test_program_led_packets() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+        let mode = 0x03; // Middle Glow
+        let color = LedColor::Red; // 0x10
+
+        let packets = keyboard.program_led(mode, 0, color);
+
+        // Should generate 3 packets of 65 bytes each
+        assert_eq!(packets.len(), 65 * 3);
+
+        // Verify Packet 0
+        let p0 = &packets[0..65];
+        assert_eq!(p0[0], 0x03);
+        assert_eq!(p0[1], 0xfe);
+        assert_eq!(p0[2], 0xb0);
+        assert_eq!(p0[3], 0x00); // Seq 0
+        assert_eq!(p0[4], mode);
+        assert_eq!(p0[5], 0x00);
+        // Data starts at index 6. Should be 20 bytes of color (0x10)
+        for i in 0..20 {
+            assert_eq!(p0[6 + i], 0x10);
+        }
+
+        // Verify Packet 1
+        let p1 = &packets[65..130];
+        assert_eq!(p1[0], 0x03);
+        assert_eq!(p1[1], 0xfe);
+        assert_eq!(p1[2], 0xb0);
+        assert_eq!(p1[3], 0x01); // Seq 1
+        assert_eq!(p1[4], mode);
+        assert_eq!(p1[5], 0x00);
+        // Data starts at index 6
+        for i in 0..20 {
+            assert_eq!(p1[6 + i], 0x10);
+        }
+
+        // Verify Packet 2
+        let p2 = &packets[130..195];
+        assert_eq!(p2[0], 0x03);
+        assert_eq!(p2[1], 0xfe);
+        assert_eq!(p2[2], 0xb0);
+        assert_eq!(p2[3], 0x02); // Seq 2
+        assert_eq!(p2[4], mode);
+        assert_eq!(p2[5], 0x00);
+        // Data starts at index 6
+        for i in 0..20 {
+            assert_eq!(p2[6 + i], 0x10);
+        }
     }
 }

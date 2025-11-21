@@ -146,6 +146,14 @@ pub struct LedCommand {
     /// 3 - no backlight, shock2 when LedColor when key pressed
     /// 4 - no backlight, light up key with LedColor when pressed
     /// 5 - backlight white always on
+    /// --------0x8850----------
+    /// 0 - LEDs off
+    /// 1 - Keypress (Dynamic response to key press)
+    /// 2 - Active Key (Dynamic response to key press)
+    /// 3 - Middle Glow (Glow from center)
+    /// 4 - Glowing (Static/Breathing)
+    /// 5 - Color Changing (Cycle through colors)
+    /// 6 - Rainbow (Rainbow wave)
     /// --------0x8890---color is not supported-------
     /// 0 - LEDs off
     /// 1 - LED on for last pushed key

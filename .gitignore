@@ -1,24 +1,35 @@
-# Rust & Cargo
-/Macrocli/target/
-/Macrocli/Cargo.lock
+# Rust build artifacts
+target/
+**/target/
+Cargo.lock
 
 # Node.js
-/Macrocli/Webapp/node_modules/
-/Macrocli/Webapp/dist/
+node_modules/
+**/node_modules/
+dist/
+**/dist/
 
 # IDE & Editor specific
 .vscode/
 .idea/
 .claude/
-docs/
+*.swp
+*.swo
+*.swn
+
 # OS-specific
 .DS_Store
+Thumbs.db
+EHthumbs.db
+desktop.ini
 
 # Project Backups
-/Macrocli/macropad_backups/
+macropad_backups/
+**/macropad_backups/
 
-# User-specific configurations (keep only default templates)
-Macrocli/macropad_configs/config.ron
-Macrocli/macropad_configs/k8850.ron
+# Logs
+*.log
+Macrocli/CLAUDE.md
 Macrocli/macropad_configs/oldthree_layer_final.ron
 Macrocli/macropad_configs/three_layer_final.ron
+Macrocli/macropad_configs/delays.txt
