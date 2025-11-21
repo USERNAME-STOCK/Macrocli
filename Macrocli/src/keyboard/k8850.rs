@@ -385,3 +385,113 @@ impl Keyboard8850 {
         Ok(msg)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_k8850_keycode_to_string() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+
+        // Test modifiers
+        assert_eq!(keyboard.keycode_to_string(0xf1), "ctrl");
+        assert_eq!(keyboard.keycode_to_string(0xf2), "shift");
+        assert_eq!(keyboard.keycode_to_string(0xf3), "alt");
+        assert_eq!(keyboard.keycode_to_string(0xf4), "win");
+
+        // Test unknown codes
+        assert_eq!(keyboard.keycode_to_string(0x99), "");
+        assert_eq!(keyboard.keycode_to_string(0x00), "");
+    }
+
+    #[test]
+    fn test_k8850_decode_empty_packet() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+
+        // Test empty response (count = 0)
+        let empty_packet = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00];
+        let (delay, mapping) = keyboard.decode_packet(&empty_packet);
+        assert_eq!(delay, 0);
+        assert_eq!(mapping, "");
+    }
+
+    #[test]
+    fn test_k8850_decode_packet_with_data() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+
+        // Test packet with single key (count = 1)
+        // [03, fa, key, layer, 01, 00, 01, delay_hi, delay_lo, keycode]
+        let packet_with_key = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04]; // 0x04 = 'a'
+        let (delay, mapping) = keyboard.decode_packet(&packet_with_key);
+        assert_eq!(delay, 0);
+        assert_eq!(mapping, "a");
+    }
+
+    #[test]
+    fn test_k8850_build_key_msg() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+
+        // Test simple key mapping
+        let msg = keyboard.build_key_msg("a", 1, 1, 0).unwrap();
+        assert_eq!(msg[0], 0x03);
+        assert_eq!(msg[1], 0xfd); // Write command
+        assert_eq!(msg[2], 0x01); // Key position
+        assert_eq!(msg[3], 0x01); // Layer
+        assert_eq!(msg[4], 0x01); // Type (keyboard)
+        assert_eq!(msg[6], 0x01); // Count of sequences
+        assert_eq!(msg.len(), 65); // Should be padded to 65 bytes
+    }
+
+    #[test]
+    fn test_k8850_build_modifier_key_msg() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+
+        // Test modifier + key mapping
+        let msg = keyboard.build_key_msg("ctrl-a", 1, 1, 100).unwrap();
+        assert_eq!(msg[0], 0x03);
+        assert_eq!(msg[1], 0xfd);
+        assert_eq!(msg[6], 0x02); // Count of sequences (ctrl + a)
+
+        // Verify delay bytes are correct (100 = 0x0064)
+        assert_eq!(msg[7], 0x00); // Delay high byte
+        assert_eq!(msg[8], 0x64); // Delay low byte
+        assert_eq!(msg[9], 0xf1); // Ctrl modifier code
+    }
+
+    #[test]
+    fn test_update_macropad_struct() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+        let mut macropad = Macropad::new(4, 4, 3);
+
+        // Test button mapping
+        keyboard.update_macropad_struct(&mut macropad, 1, 1, 50, "test_key".to_string());
+        assert_eq!(macropad.layers[0].buttons[0][0].delay, 50);
+        assert_eq!(macropad.layers[0].buttons[0][0].mapping, "test_key");
+
+        // Test knob mapping
+        keyboard.update_macropad_struct(&mut macropad, 1, 17, 100, "knob_ccw".to_string());
+        assert_eq!(macropad.layers[0].knobs[0].ccw.delay, 100);
+        assert_eq!(macropad.layers[0].knobs[0].ccw.mapping, "knob_ccw");
+
+        keyboard.update_macropad_struct(&mut macropad, 1, 18, 150, "knob_press".to_string());
+        assert_eq!(macropad.layers[0].knobs[0].press.delay, 150);
+        assert_eq!(macropad.layers[0].knobs[0].press.mapping, "knob_press");
+
+        keyboard.update_macropad_struct(&mut macropad, 1, 19, 200, "knob_cw".to_string());
+        assert_eq!(macropad.layers[0].knobs[0].cw.delay, 200);
+        assert_eq!(macropad.layers[0].knobs[0].cw.mapping, "knob_cw");
+    }
+
+    #[test]
+    fn test_end_program_message() {
+        let keyboard = Keyboard8850::new(None, 0).unwrap();
+        let end_msg = keyboard.end_program();
+
+        assert_eq!(end_msg[0], 0x03);
+        assert_eq!(end_msg[1], 0xfd);
+        assert_eq!(end_msg[2], 0xfe);
+        assert_eq!(end_msg[3], 0xff);
+        assert_eq!(end_msg.len(), 65); // Should be padded to 65 bytes
+    }
+}
