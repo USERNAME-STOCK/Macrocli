@@ -2,31 +2,45 @@
 
 # Macrocli - Advanced Macropad Configuration System
 
-[![License: CC BY-SA 3.0](https://img.shields.io/badge/License-CC%20BY--SA%203.0-blue.svg)](https://creativecommons.org/licenses/by-sa/3.0/)
-[![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org/)
-[![Security](https://img.shields.io/badge/security-validated-brightgreen.svg)](SECURITY.md)
-
-**Production-grade USB device configuration tool with emphasis on data validation, security, and integrity**
-
-[Features](#key-features) • [Quick Start](#quick-start) • [Architecture](#architecture) • [Skills](#skills-demonstrated)
-
-</div>
-
----
-
 ## Overview
 
-Macrocli is a command-line device configuration system for USB macropad devices (VID: `0x1189`, PIDs: `0x8840`, `0x8842`, `0x8890`). Built with Rust, it demonstrates enterprise software practices focused on data integrity, multi-layer validation, and secure device operations.
+Macrocli is a command-line device configuration system for USB macropad devices. Built with Rust, it demonstrates enterprise software practices focused on data integrity, multi-layer validation, and secure device operations.
 
 **Description:** A comprehensive tool for programming and managing USB macropad configurations through a command-line interface. Implements robust validation pipelines, device authentication, and configuration management with emphasis on security and data integrity.
 
+### Supported Devices
+
+| Device Model | Vendor ID | Product ID | Status | Features |
+|--------------|-----------|------------|---------|----------|
+| **K884X/K8842** | 0x1189 | 0x8840/0x8842 | ✅ Fully Working | 17-key sequences, delays, LED colors, read/write |
+| **K8890** | 0x1189 | 0x8890 | ✅ Fully Working | 5-key sequences, no delays, limited media keys, read/write |
+| **K8850** | 0x514c | 0x8850 | ✅ Fully Working | 18-key sequences, multi-layer reading, read/write |
+
+#### Device-Specific Notes
+
+**K8850 (QingHeng Electronics):**
+- **Reading**: ✅ Multi-layer reading - reads all 3 layers in single command
+- **Programming**: ✅ Full programming support for all 25 keys (16 buttons + 9 knob actions)
+- **Protocol**: Uses Magic Init Packet for device communication
+- **Usage**: `./macrocli --vendor-id 0x514c --product-id 0x8850 read` (reads all layers by default)
+
+**K884X/K8842:**
+- Standard USB protocol implementation
+- Supports 17-key sequences with customizable delays
+- LED color configuration per layer
+
+**K8890:**
+- Limited device with simplified protocol
+- 5-key maximum sequences (no delays supported)
+- Restricted media key set
+
 ### System Components
 
-| Component | Technology Stack | Purpose |
-|-----------|-----------------|---------|
-| **CLI Tool** | Rust | High-performance device communication & configuration |
-| **Validation Engine** | Rust | Multi-layer data validation & integrity checking |
-| **USB Layer** | rusb | Direct USB device communication |
+| Component             | Technology Stack | Purpose                                               |
+| --------------------- | ---------------- | ----------------------------------------------------- |
+| **CLI Tool**          | Rust             | High-performance device communication & configuration |
+| **Validation Engine** | Rust             | Multi-layer data validation & integrity checking      |
+| **USB Layer**         | rusb             | Direct USB device communication                       |
 
 ## Skills Demonstrated
 
@@ -101,7 +115,7 @@ Macrocli/
 ### Prerequisites
 
 - Rust toolchain (1.70+)
-- USB macropad device (VID: `0x1189`, PID: `0x8840`/`0x8842`/`0x8890`/`0x8850`)
+- USB macropad device (see Supported Devices table above)
 
 ### Installation & Setup
 
@@ -185,6 +199,13 @@ Command-line interface for direct device operations and automation:
 # Read current device configuration
 ./target/release/macrocli read
 
+# Device-specific reading commands:
+# K8850 (multi-layer by default):
+./target/release/macrocli --vendor-id 0x514c --product-id 0x8850 read
+
+# Other devices (specify layer):
+./target/release/macrocli read --layer 1
+
 # Display all supported keys
 ./target/release/macrocli show-keys
 
@@ -255,9 +276,3 @@ See [LICENSE](LICENSE) for full details.
 - Built with [Rust](https://www.rust-lang.org/) and [rusb](https://github.com/a1ien/rusb)
 
 ---
-
-<div align="center">
-
-[Report Bug](https://github.com/USERNAME-STOCK/Macrocli/issues) | [Request Feature](https://github.com/USERNAME-STOCK/Macrocli/issues)
-
-</div>
