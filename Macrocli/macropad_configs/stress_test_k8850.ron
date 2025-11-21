@@ -1,0 +1,118 @@
+(
+    device: (
+        orientation: Normal,
+        rows: 4,
+        cols: 4,
+        knobs: 3,
+    ),
+    layers: [
+        // ═══════════════════════════════════════════════════════════
+        // LAYER 1 - Delays: 0-170ms (increments of 10ms per key)
+        // ═══════════════════════════════════════════════════════════
+        (
+            buttons: [
+                [
+                    (delay: 0, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 10, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 20, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 30, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 40, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 50, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 60, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 70, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+                [
+                    (delay: 80, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 90, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 100, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 110, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 120, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 130, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 140, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 150, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+            ],
+            knobs: [
+                (ccw: (delay: 160, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 165, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 170, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+                (ccw: (delay: 175, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), press: (delay: 180, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), cw: (delay: 185, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0")),
+                (ccw: (delay: 190, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 195, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 200, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+            ],
+        ),
+        // ═══════════════════════════════════════════════════════════
+        // LAYER 2 - Delays: 250-450ms (increments of 10ms per key)
+        // ═══════════════════════════════════════════════════════════
+        (
+            buttons: [
+                [
+                    (delay: 250, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 260, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 270, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 280, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 290, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 300, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 310, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 320, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+                [
+                    (delay: 330, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 340, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 350, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 360, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 370, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 380, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 390, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 400, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+            ],
+            knobs: [
+                (ccw: (delay: 410, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 415, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 420, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+                (ccw: (delay: 425, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), press: (delay: 430, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), cw: (delay: 435, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0")),
+                (ccw: (delay: 440, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 445, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 450, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+            ],
+        ),
+        // ═══════════════════════════════════════════════════════════
+        // LAYER 3 - Delays: 500-700ms (increments of 10ms per key)
+        // ═══════════════════════════════════════════════════════════
+        (
+            buttons: [
+                [
+                    (delay: 500, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 510, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 520, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 530, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 540, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 550, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 560, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 570, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+                [
+                    (delay: 580, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 590, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 600, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                    (delay: 610, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"),
+                ],
+                [
+                    (delay: 620, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 630, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 640, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                    (delay: 650, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"),
+                ],
+            ],
+            knobs: [
+                (ccw: (delay: 660, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 665, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 670, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+                (ccw: (delay: 675, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), press: (delay: 680, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), cw: (delay: 685, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0")),
+                (ccw: (delay: 690, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r"), press: (delay: 695, mapping: "s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0"), cw: (delay: 700, mapping: "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r")),
+            ],
+        ),
+    ],
+)

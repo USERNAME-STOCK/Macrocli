@@ -1,46 +1,49 @@
 (
     device: (
         orientation: Normal,
-        rows: 3,
+        rows: 4,
         cols: 4,
         knobs: 3,
     ),
     layers: [
         (
             buttons: [
-                [(delay: 0, mapping: "ctrl-x"), (delay: 0, mapping: "ctrl-c"), (delay: 0, mapping: "ctrl-v"), (delay: 100, mapping: "ctrl-s,ctrl-v,end,e,escape")],
-                [(delay: 0, mapping: "ctrl-z"), (delay: 0, mapping: "ctrl-y"), (delay: 0, mapping: "ctrl-a"), (delay: 0, mapping: "ctrl-f")],
-                [(delay: 0, mapping: "up"), (delay: 0, mapping: "down"), (delay: 0, mapping: "left"), (delay: 0, mapping: "right")]
+                [(delay: 0, mapping: "a,b,c"), (delay: 10, mapping: "d,e,f"), (delay: 20, mapping: "g,h,i"), (delay: 30, mapping: "j,k,l")],
+                [(delay: 40, mapping: "m,n,o"), (delay: 50, mapping: "p,q,r"), (delay: 60, mapping: "s,t,u"), (delay: 70, mapping: "v,w,x")],
+                [(delay: 80, mapping: "y,z,1"), (delay: 90, mapping: "2,3,4"), (delay: 100, mapping: "5,6,7"), (delay: 110, mapping: "8,9,0")],
+                [(delay: 120, mapping: "a,b,c"), (delay: 130, mapping: "d,e,f"), (delay: 140, mapping: "g,h,i"), (delay: 150, mapping: "j,k,l")],
             ],
             knobs: [
-                (ccw: (delay: 0, mapping: "wheelup"), press: (delay: 0, mapping: "mclick"), cw: (delay: 0, mapping: "wheeldown")),
-                (ccw: (delay: 0, mapping: "volumedown"), press: (delay: 0, mapping: "mute"), cw: (delay: 0, mapping: "volumeup")),
-                (ccw: (delay: 0, mapping: "home"), press: (delay: 0, mapping: "end"), cw: (delay: 0, mapping: "pagedown"))
+                (ccw: (delay: 160, mapping: "m,n,o"), press: (delay: 170, mapping: "p,q,r"), cw: (delay: 180, mapping: "s,t,u")),
+                (ccw: (delay: 190, mapping: "v,w,x"), press: (delay: 200, mapping: "y,z,1"), cw: (delay: 210, mapping: "2,3,4")),
+                (ccw: (delay: 220, mapping: "5,6,7"), press: (delay: 230, mapping: "8,9,0"), cw: (delay: 240, mapping: "a,b,c")),
             ],
         ),
         (
             buttons: [
-                [(delay: 0, mapping: "ctrl-t"), (delay: 0, mapping: "ctrl-w"), (delay: 0, mapping: "ctrl-shift-t"), (delay: 0, mapping: "f5")],
-                [(delay: 0, mapping: "ctrl-tab"), (delay: 0, mapping: "ctrl-shift-tab"), (delay: 0, mapping: "alt-tab"), (delay: 0, mapping: "alt-f4")],
-                [(delay: 0, mapping: "alt-left"), (delay: 0, mapping: "alt-right"), (delay: 0, mapping: "ctrl-d"), (delay: 0, mapping: "f12")]
+                [(delay: 250, mapping: "a,b,c"), (delay: 260, mapping: "d,e,f"), (delay: 270, mapping: "g,h,i"), (delay: 280, mapping: "j,k,l")],
+                [(delay: 290, mapping: "m,n,o"), (delay: 300, mapping: "p,q,r"), (delay: 310, mapping: "s,t,u"), (delay: 320, mapping: "v,w,x")],
+                [(delay: 330, mapping: "y,z,1"), (delay: 340, mapping: "2,3,4"), (delay: 350, mapping: "5,6,7"), (delay: 360, mapping: "8,9,0")],
+                [(delay: 370, mapping: "a,b,c"), (delay: 380, mapping: "d,e,f"), (delay: 390, mapping: "g,h,i"), (delay: 400, mapping: "j,k,l")],
             ],
             knobs: [
-                (ccw: (delay: 0, mapping: "ctrl-shift-tab"), press: (delay: 0, mapping: "ctrl-w"), cw: (delay: 0, mapping: "ctrl-tab")),
-                (ccw: (delay: 0, mapping: "alt-shift-tab"), press: (delay: 0, mapping: "alt-f4"), cw: (delay: 0, mapping: "alt-tab")),
-                (ccw: (delay: 0, mapping: "alt-left"), press: (delay: 0, mapping: "f5"), cw: (delay: 0, mapping: "alt-right"))
+                (ccw: (delay: 410, mapping: "m,n,o"), press: (delay: 420, mapping: "p,q,r"), cw: (delay: 430, mapping: "s,t,u")),
+                (ccw: (delay: 440, mapping: "v,w,x"), press: (delay: 450, mapping: "y,z,1"), cw: (delay: 460, mapping: "2,3,4")),
+                (ccw: (delay: 470, mapping: "5,6,7"), press: (delay: 480, mapping: "8,9,0"), cw: (delay: 490, mapping: "a,b,c")),
             ],
         ),
         (
             buttons: [
-                [(delay: 0, mapping: "play"), (delay: 0, mapping: "next"), (delay: 0, mapping: "previous"), (delay: 0, mapping: "stop")],
-                [(delay: 0, mapping: "volumeup"), (delay: 0, mapping: "volumedown"), (delay: 0, mapping: "mute"), (delay: 0, mapping: "calculator")],
-                [(delay: 0, mapping: "printscreen"), (delay: 0, mapping: "win-l"), (delay: 0, mapping: "win-e"), (delay: 0, mapping: "win-d")]
+                [(delay: 500, mapping: "a,b,c"), (delay: 510, mapping: "d,e,f"), (delay: 520, mapping: "g,h,i"), (delay: 530, mapping: "j,k,l")],
+                [(delay: 540, mapping: "m,n,o"), (delay: 550, mapping: "p,q,r"), (delay: 560, mapping: "s,t,u"), (delay: 570, mapping: "v,w,x")],
+                [(delay: 580, mapping: "y,z,1"), (delay: 590, mapping: "2,3,4"), (delay: 600, mapping: "5,6,7"), (delay: 610, mapping: "8,9,0")],
+                [(delay: 620, mapping: "a,b,c"), (delay: 630, mapping: "d,e,f"), (delay: 640, mapping: "g,h,i"), (delay: 650, mapping: "j,k,l")],
             ],
             knobs: [
-                (ccw: (delay: 0, mapping: "previous"), press: (delay: 0, mapping: "play"), cw: (delay: 0, mapping: "next")),
-                (ccw: (delay: 0, mapping: "volumedown"), press: (delay: 0, mapping: "mute"), cw: (delay: 0, mapping: "volumeup")),
-                (ccw: (delay: 0, mapping: "screenbrightnessdown"), press: (delay: 0, mapping: "calculator"), cw: (delay: 0, mapping: "screenbrightnessup"))
+                (ccw: (delay: 660, mapping: "m,n,o"), press: (delay: 670, mapping: "p,q,r"), cw: (delay: 680, mapping: "s,t,u")),
+                (ccw: (delay: 690, mapping: "v,w,x"), press: (delay: 700, mapping: "y,z,1"), cw: (delay: 710, mapping: "2,3,4")),
+                (ccw: (delay: 720, mapping: "5,6,7"), press: (delay: 730, mapping: "8,9,0"), cw: (delay: 740, mapping: "a,b,c")),
             ],
-        )
+        ),
     ],
 )

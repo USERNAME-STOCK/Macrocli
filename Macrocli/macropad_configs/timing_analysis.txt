@@ -1,0 +1,86 @@
+K8850 BUTTON 4 PROGRAMMING TIMING ANALYSIS
+==========================================
+
+Based on the USB capture filtering, here are the key findings for your delay testing:
+
+DEVICE IDENTIFICATION
+---------------------
+- Device: K8850 (QingHeng Electronics, Vendor ID: 0x514c)
+- Device Address: 4 (main interface)
+- Communication Endpoints: 0x83 (IN), 0x02 (OUT)
+- Device Family: 3.4.x (bus 3, device 4)
+
+ABCD MACRO PROGRAMMING SEQUENCE
+------------------------------
+Location: Line 99950 in delays.txt
+Timestamp: 7.179163 seconds from start
+Data Sequence: ...47abcd3c... (ASCII: 'G' 'A' 'B' 'C' 'D')
+
+Key Programming Pattern:
+1. Device initialization: 7.154833s - 7.178880s (~24ms setup)
+2. Programming communication: 7.178880s - 7.179276s (rapid exchange)
+3. Program completion: 7.196101s onwards
+
+TIMING PATTERNS FOR DELAY TESTING
+---------------------------------
+
+The USB capture shows your K8850 uses these timing intervals:
+
+1. IMMEDIATE RESPONSE PATTERN
+   - 7.178880s → 7.178925s: 45 microseconds (device ACK)
+   - 7.178925s → 7.179163s: 238 microseconds (programming data)
+   - 7.179163s → 7.179223s: 60 microseconds (programming confirm)
+   - 7.179223s → 7.179258s: 35 microseconds (completion ACK)
+
+2. POLLING RATE
+   - Device maintains continuous URB_INTERRUPT traffic
+   - Polling interval: ~129 packets/second
+   - Regular maintenance: Every ~7.75ms
+
+3. PROGRAMMING WINDOW
+   - Total programming cycle: ~24ms (7.154833s - 7.179276s)
+   - Actual programming data transfer: 396ms microseconds
+   - Device processing overhead: minimal
+
+EXPECTED DELAY TESTING PATTERNS
+-------------------------------
+
+For your button 4 ABCD macro with delay variations:
+
+50ms Delay:  Expected pattern = 50,000,000 microseconds
+- USB capture should show: 7.179163s + 0.050s = 7.229163s completion
+
+100ms Delay: Expected pattern = 100,000,000 microseconds
+- USB capture should show: 7.179163s + 0.100s = 7.279163s completion
+
+200ms Delay: Expected pattern = 200,000,000 microseconds
+- USB capture should show: 7.179163s + 0.200s = 7.379163s completion
+
+400ms Delay: Expected pattern = 400,000,000 microseconds
+- USB capture should show: 7.179163s + 0.400s = 7.579163s completion
+
+800ms Delay: Expected pattern = 800,000,000 microseconds
+- USB capture should show: 7.179163s + 0.800s = 7.979163s completion
+
+FILTERING RECOMMENDATIONS
+-------------------------
+
+To filter only relevant operations in your future captures:
+
+1. DEVICE FILTERING
+   grep -E "Device address: 4|514c" delays.txt
+
+2. ABCD MACRO TRACKING
+   grep -n "47abcd" delays.txt
+
+3. TIMING ANALYSIS
+   grep -A 10 -B 10 "7\.179" delays.txt | grep "Time since reference"
+
+4. ENDPOINT COMMUNICATION
+   grep -E "Endpoint: 0x83|Endpoint: 0x02" delays.txt
+
+5. PROGRAMMING PACKETS
+   grep -E "Packet Data Length.*[0-9]+.*microseconds" delays.txt
+
+This analysis provides the baseline for comparing your delay variations when testing
+the different timing values on button 4's ABCD macro programming.
