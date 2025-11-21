@@ -153,11 +153,12 @@ fn main() -> Result<()> {
                 .context("programming LED on macropad")?;
         }
 
-        Command::Read { layer } => {
+        Command::Read { layer, all_layers } => {
             debug!("dev options: {:?}", options.devel_options);
+            let layer_to_read = if *all_layers { 0 } else { *layer };
             let mut keyboard = open_keyboard(&options).context("opening keyboard")?;
             let macropad_config = keyboard
-                .read_macropad_config(layer)
+                .read_macropad_config(&layer_to_read)
                 .context("reading macropad configuration")?;
             Mapping::print(macropad_config);
         }

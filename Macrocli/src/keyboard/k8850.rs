@@ -21,6 +21,8 @@ pub struct Keyboard8850 {
 impl Configuration for Keyboard8850 {
     fn read_macropad_config(&mut self, layer: &u8) -> Result<Macropad> {
         let mut macropad = Macropad::new(4, 4, 3);
+        // Track which layers we have successfully read data for
+        let mut received_layers = [false; 4]; // Index 1-3 used for layers 1-3
 
         // --- STEP 1: Send Magic Init Packet (Frame 37871) ---
         // This puts the device into a state where it accepts read requests.
@@ -37,63 +39,90 @@ impl Configuration for Keyboard8850 {
             0x54
         ];
 
-        info!("Sending Magic Init Packet...");
-        self.send(&magic_packet)?;
-
-        // Wait for device to switch modes (increased to 200ms for stability)
-        thread::sleep(Duration::from_millis(200));
-
-        // --- STEP 2: Polled Read Loop ---
-        let layers_to_read = if *layer == 0 {
-            vec![1, 2, 3]
-        } else {
+        // Determine which layers we want to read
+        let layers_to_read: Vec<u8> = if *layer > 0 {
             vec![*layer]
+        } else {
+            vec![1, 2, 3]
         };
 
-        // Try continuous reading approach - maybe device streams data after magic packet
-        for l in layers_to_read {
-            info!("Reading configuration for Layer {}", l);
+        for target_layer in layers_to_read {
+            // Check if we already have this layer (e.g. from a previous multi-layer response)
+            if received_layers[target_layer as usize] {
+                continue;
+            }
 
-            // Try to read all data continuously
-            let mut total_keys_found = 0;
-            for attempt in 0..50 { // Try 50 read attempts
+            // Construct Magic Packet for this specific layer
+            // We suspect byte 4 is the layer index based on K884x protocol and behavior
+            let mut current_magic = magic_packet;
+            current_magic[4] = target_layer;
+
+            info!("Requesting Layer {}...", target_layer);
+            self.send(&current_magic)?;
+
+            // Wait for device to switch modes (increased to 200ms for stability)
+            thread::sleep(Duration::from_millis(200));
+
+            // --- STEP 2: Continuous Read Loop ---
+            info!("Reading configuration stream...");
+
+            let mut empty_reads = 0;
+            // Increase timeout tolerance: 100ms timeout + 20ms sleep = 120ms per cycle.
+            // 50 attempts * 120ms = 6 seconds.
+            // This ensures we don't stop if there's a pause between layers.
+            let max_empty_reads = 50;
+            let mut total_packets = 0;
+
+            loop {
                 let mut buf = [0u8; consts::PACKET_SIZE];
                 let len = self.recieve(&mut buf)?;
 
-                if len > 0 {
-                    debug!("Read attempt {}: Received {} bytes: {:?}", attempt, len, &buf[..len.min(8)]);
+                if len == 0 {
+                    empty_reads += 1;
+                    if empty_reads >= max_empty_reads {
+                        debug!("No data received for {} attempts, assuming stream end.", max_empty_reads);
+                        break;
+                    }
+                    // Small delay between empty reads
+                    thread::sleep(Duration::from_millis(20));
+                    continue;
+                }
 
-                    // Check if this looks like a valid response
-                    if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
-                        let key_index = buf[2];
-                        let response_layer = buf[3];
+                // Reset empty reads counter on successful read
+                empty_reads = 0;
+                total_packets += 1;
 
-                        if response_layer == l {
-                            debug!("Valid response for layer {}, key {}", l, key_index);
+                // Check if this looks like a valid response
+                if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
+                    let key_index = buf[2];
+                    let response_layer = buf[3];
+
+                    // The device streams layers 1, 2, 3 sequentially.
+                    if response_layer >= 1 && response_layer <= 3 {
+                        // Mark this layer as received
+                        received_layers[response_layer as usize] = true;
+
+                        // Only update if we want all layers (0) or this specific layer
+                        if *layer == 0 || *layer == response_layer {
                             let (delay, mapping) = self.decode_packet(&buf);
+
                             if !mapping.is_empty() {
-                                debug!("Layer {} Key {}: {} (Delay: {})", l, key_index, mapping, delay);
-                                self.update_macropad_struct(&mut macropad, l, key_index, delay, mapping);
-                                total_keys_found += 1;
+                                debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
+                                self.update_macropad_struct(&mut macropad, response_layer, key_index, delay, mapping);
                             }
                         }
                     }
                 }
-
-                // Small delay between read attempts
-                thread::sleep(Duration::from_millis(20));
-
-                // Stop if we've found all keys for this layer
-                if total_keys_found >= 25 {
-                    break;
-                }
             }
 
-            info!("Found {} keys for layer {}", total_keys_found, l);
-        }
+            info!("Read finished. Processed {} packets.", total_packets);
 
-        // --- STEP 3: Send Termination Packet ---
-        self.send(&self.end_program())?;
+            // --- STEP 3: Send Termination Packet ---
+            self.send(&self.end_program())?;
+
+            // Small delay before next layer read
+            thread::sleep(Duration::from_millis(200));
+        }
 
         Ok(macropad)
     }
@@ -187,16 +216,6 @@ impl Keyboard8850 {
         })
     }
 
-    fn build_read_request(&self, key_index: u8, layer: u8) -> Vec<u8> {
-        // Try simpler read request format
-        let mut msg = vec![0u8; consts::PACKET_SIZE];
-        msg[0] = 0x03;
-        msg[1] = 0xfa; // READ command
-        msg[2] = key_index;
-        msg[3] = layer;
-        // Rest zeros for now - try minimal format
-        msg
-    }
 
     fn update_macropad_struct(&self, macropad: &mut Macropad, layer: u8, key_index: u8, delay: u16, mapping: String) {
         let layer_idx = (layer - 1) as usize;

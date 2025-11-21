@@ -126,6 +126,10 @@ pub enum Command {
         /// Layer to read data for (layer is one based; 0 reads all layers)
         #[clap(short, long, default_value_t = 0)]
         layer: u8,
+
+        /// Read all layers (equivalent to --layer 0)
+        #[clap(long, default_value_t = false)]
+        all_layers: bool,
     },
 
     /// Select LED backlight mode
