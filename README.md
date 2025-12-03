@@ -1,151 +1,76 @@
-<div align="center">
+# Macrocli
 
-# Macrocli - Advanced Macropad Configuration System
+**Cross-platform CLI tool for programming Chinese USB macro keyboards without vendor software.**
 
-**A high-performance CLI tool for configuring, validating, and managing USB macropad devices.**
+## Why This Exists
 
-</div>
+Chinese macro keyboards (K8850, K884X, K8890) offer excellent hardware value but ship with questionable closed-source Windows-only software. This project provides a clean, auditable alternative built entirely through AI-assisted development.
+
+**Built by a non-programmer** — I'm a financial analyst who needed keyboard automation for specific workflows. With no prior Rust or systems programming experience, I reverse-engineered the USB HID protocol and built this tool collaboratively with AI (Claude) over several weeks.
+
+Inspired by [eccherda/ch552g_mini_keyboard](https://github.com/eccherda/ch552g_mini_keyboard), which provides firmware for similar CH552G-based hardware.
+
+## What It Does
+
+- **Programs macro sequences** to physical keys (up to 18 keystrokes per button)
+- **Per-key timing control** — millisecond-precision delays between keystrokes (K8850)
+- **Multi-layer support** — 3 switchable keyboard layers (75 programmable actions)
+- **Reads configurations back** from device memory
+- **Cross-platform** — Linux/Windows, no vendor drivers required
+
+## Use Cases
+
+Macro keyboards accelerate repetitive workflows common in:
+- **Financial analysis** — caret browsing, system navigation, data entry sequences
+- **Compliance operations** — case management shortcuts, investigation tool macros
+- **Trading workflows** — rapid order entry, platform navigation
+- **General productivity** — any multi-step keyboard automation
+
+## Technical Approach
+
+The vendor software was analyzed via USB packet capture (Wireshark/USBPcap). Key discoveries:
+- Custom HID protocol on endpoint 0x04
+- Big-endian delay encoding (initially caused 256x timing errors)
+- Per-key delay support unique to K8850 hardware
+
+No decompilation or proprietary code was used — pure protocol analysis.
 
 ## Supported Devices
 
-| Device Model    | Vendor ID | Product ID    | Key Features                                            |
-| --------------- | --------- | ------------- | ------------------------------------------------------- |
-| **K884X/K8842** | 0x1189    | 0x8840/0x8842 | 17-key macros, LED control, Global Delays               |
-| **K8890**       | 0x1189    | 0x8890        | 5-key macros, Media keys, No delays                     |
-| **K8850**       | 0x514c    | 0x8850        | **18-key macros**, **Per-Key Delays (0-6s)**, 3 Layers  |
+| Device | VID:PID | Keys | Delays | Notes |
+|--------|---------|------|--------|-------|
+| K8850 | 514c:8850 | 16 + 3 knobs | Per-key (0-6000ms) | Full support (LEDs pending) |
+| K884X | 1189:8840/8842 | 16 | Global only | LED control |
+| K8890 | 1189:8890 | 5 | None | Basic macros |
 
-### Device Capabilities
+## Quick Start
 
-- **K8850 (QingHeng)**:
-  - Full support for **18 keys per macro** (buttons & knobs).
-  - **Precise Delay Control**: 0ms to 6000ms range.
-  - **Per-Key Delays**: Define specific delays for each step in a macro sequence.
-  - **Multi-Layer**: Reads/Writes all 3 layers simultaneously.
-  - 16 Buttons + 3 Knobs (CW/CCW/Press) = 25 programmable inputs per layer.
-
-- **K884X (0x8840/0x8842)**:
-  - Standard 17-key sequence support.
-  - **Global Delay**: Supports a single delay setting per macro button.
-  - **Read Support**: Can read back configuration from device.
-  - Per-layer LED color configuration.
-
-- **K8890**:
-  - Basic 5-key sequences.
-  - Multimedia key support.
-
----
-
-## Installation
-
-### Prerequisites
-- Rust toolchain (1.70+)
-
-### Build
 ```bash
-cd Macrocli
 cargo build --release
-```
-The binary will be available at `target/release/macrocli`.
-
-### Linux Permissions (Required for non-root access)
-```bash
-sudo cp 80-macrocli.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-# Re-plug your device
+./macrocli show-keys          # Detect device
+./macrocli read               # Read current config
+./macrocli program -c config.ron
 ```
 
----
+Configuration uses RON format. See `/macropad_configs/` for examples.
 
-## Usage
+## Project Structure
 
-### Common Commands
-
-**Show connected device and keys:**
-```bash
-./macrocli show-keys
 ```
-
-**Read current configuration:**
-```bash
-# Auto-detects device and reads config
-./macrocli read
+src/
+├── keyboard/       # Device-specific protocol implementations
+│   ├── k8850.rs    # QingHeng K8850 (most complete)
+│   ├── k884x.rs    # K8840/K8842 support
+│   └── k8890.rs    # K8890 support
+├── mapping.rs      # Configuration parsing/validation
+└── main.rs         # CLI interface
 ```
-
-**Program device:**
-```bash
-./macrocli program -c my_config.ron
-```
-
-**Validate configuration file:**
-```bash
-./macrocli validate -c my_config.ron
-```
-
-**Control LEDs (K884X only):**
-```bash
-# Set Layer 1 LED to Red (Index 1)
-./macrocli led 1 1
-```
-
-### Configuration Format (.ron)
-
-Configurations use the **RON** (Rust Object Notation) format.
-
-**Example (K8850/K884X):**
-```rust
-(
-    device: (
-        orientation: Normal,
-        rows: 4, cols: 4, knobs: 3,
-    ),
-    layers: [
-        (
-            buttons: [
-                // Row 1
-                [
-                    // Simple delay for the whole macro
-                    (delay: 0, mapping: "Ctrl+c"),
-
-                    // Advanced: Per-key delays (K8850 only)
-                    // Format: [delay_before_key1, delay_before_key2, ...]
-                    (
-                        delay: 0, // Fallback/Initial delay
-                        per_key_delays: [10, 500, 10],
-                        mapping: "a+b+c"
-                    ),
-
-                    (delay: 50, mapping: "Ctrl+v"),
-                ],
-                // ... other rows
-            ],
-            knobs: [
-                (
-                    ccw: (delay: 10, mapping: "VolumeDown"),
-                    press: (delay: 0, mapping: "Mute"),
-                    cw: (delay: 10, mapping: "VolumeUp")
-                ),
-                // ... other knobs
-            ]
-        ),
-        // ... Layer 2, Layer 3
-    ]
-)
-```
-
----
 
 ## Roadmap
 
-- [ ] Reverse engineer LED control support for K8850 and K8890 devices.
-- [ ] Add GUI for configuration.
+- [ ] GUI configuration tool
+- [ ] LED support for K8850
 
-## Troubleshooting
+---
 
-- **"Device not found"**: Ensure you have permissions (check Linux Setup) or run as sudo/admin.
-- **"Validation failed"**: Check your `.ron` file syntax. Ensure you aren't exceeding the max keys per macro (18 for K8850, 17 for K884X, 5 for K8890).
-- **K8850 Programming**: Ensure you provide full 3-layer configuration as the device expects all layers to be written.
-
-## License
-
-Creative Commons Attribution-ShareAlike 3.0 Unported License.
+*First time using git — some commit history may be chaotic.*
