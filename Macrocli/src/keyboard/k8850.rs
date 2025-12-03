@@ -250,8 +250,8 @@ impl Keyboard for Keyboard8850 {
     }
 
     fn get_in_endpoint(&self) -> u8 {
-        // K8850 standard IN endpoint
-        0x83
+        // K8850 standard IN endpoint (auto-detected as 0x84)
+        0x84
     }
 }
 
@@ -330,7 +330,7 @@ impl Keyboard8850 {
             let delay_hi = packet[idx + 1];
             let keycode = packet[idx + 2];
 
-            let delay = ((delay_hi as u16) << 8) | (delay_lo as u16);
+            let delay = ((delay_lo as u16) << 8) | (delay_hi as u16);
             // Store the delay (assuming uniform delay for chord)
             if delay > 0 {
                 global_delay = delay;
@@ -432,8 +432,8 @@ impl Keyboard8850 {
                 }
 
                 if code_to_add != 0 {
-                    // Delay is Little Endian based on USB capture analysis
-                    let d_bytes = delay.to_le_bytes();
+                    // Delay is Big Endian based on user analysis (10ms -> 2560ms issue)
+                    let d_bytes = delay.to_be_bytes();
                     sequence.push(d_bytes[0]);
                     sequence.push(d_bytes[1]);
                     sequence.push(code_to_add);
