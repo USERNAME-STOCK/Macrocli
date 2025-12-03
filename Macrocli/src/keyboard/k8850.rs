@@ -94,27 +94,34 @@ impl Configuration for Keyboard8850 {
                 empty_reads = 0;
                 total_packets += 1;
 
-                // Check if this looks like a valid response
-                if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
-                    let key_index = buf[2];
-                    let response_layer = buf[3];
+            // Check if this looks like a valid response
+            if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
+                let key_index = buf[2];
+                let response_layer = buf[3];
 
-                    // The device streams layers 1, 2, 3 sequentially.
-                    if response_layer >= 1 && response_layer <= 3 {
-                        // Mark this layer as received
-                        received_layers[response_layer as usize] = true;
+                // The device streams layers 1, 2, 3 sequentially.
+                if response_layer >= 1 && response_layer <= 3 {
+                    // Mark this layer as received
+                    received_layers[response_layer as usize] = true;
 
-                        // Only update if we want all layers (0) or this specific layer
-                        if *layer == 0 || *layer == response_layer {
-                            let (delay, mapping) = self.decode_packet(&buf);
+                    // Only update if we want all layers (0) or this specific layer
+                    if *layer == 0 || *layer == response_layer {
+                        let (delay, per_key_delays, mapping) = self.decode_packet(&buf);
 
-                            if !mapping.is_empty() {
-                                debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
-                                self.update_macropad_struct(&mut macropad, response_layer, key_index, delay, mapping);
-                            }
+                        if !mapping.is_empty() {
+                            debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
+                            self.update_macropad_struct(
+                                &mut macropad,
+                                response_layer,
+                                key_index,
+                                delay,
+                                per_key_delays,
+                                mapping,
+                            );
                         }
                     }
                 }
+            }
             }
 
             info!("Read finished. Processed {} packets.", total_packets);
@@ -192,7 +199,13 @@ impl Keyboard for Keyboard8850 {
             // 1. Program Buttons
             for row in &layer.buttons {
                 for btn in row {
-                    let msg = self.build_key_msg(&btn.mapping, lyr, key_num, btn.delay)?;
+                    let msg = self.build_key_msg(
+                        &btn.mapping,
+                        lyr,
+                        key_num,
+                        btn.delay,
+                        &btn.per_key_delays,
+                    )?;
                     self.send(&msg)?;
                     key_num += 1;
                 }
@@ -201,15 +214,33 @@ impl Keyboard for Keyboard8850 {
             // 2. Program Knobs
             for knob in &layer.knobs {
                 // CCW
-                self.send(&self.build_key_msg(&knob.ccw.mapping, lyr, key_num, knob.ccw.delay)?)?;
+                self.send(&self.build_key_msg(
+                    &knob.ccw.mapping,
+                    lyr,
+                    key_num,
+                    knob.ccw.delay,
+                    &knob.ccw.per_key_delays,
+                )?)?;
                 key_num += 1;
 
                 // Press
-                self.send(&self.build_key_msg(&knob.press.mapping, lyr, key_num, knob.press.delay)?)?;
+                self.send(&self.build_key_msg(
+                    &knob.press.mapping,
+                    lyr,
+                    key_num,
+                    knob.press.delay,
+                    &knob.press.per_key_delays,
+                )?)?;
                 key_num += 1;
 
                 // CW
-                self.send(&self.build_key_msg(&knob.cw.mapping, lyr, key_num, knob.cw.delay)?)?;
+                self.send(&self.build_key_msg(
+                    &knob.cw.mapping,
+                    lyr,
+                    key_num,
+                    knob.cw.delay,
+                    &knob.cw.per_key_delays,
+                )?)?;
                 key_num += 1;
             }
 
@@ -264,7 +295,15 @@ impl Keyboard8850 {
     }
 
 
-    fn update_macropad_struct(&self, macropad: &mut Macropad, layer: u8, key_index: u8, delay: u16, mapping: String) {
+    fn update_macropad_struct(
+        &self,
+        macropad: &mut Macropad,
+        layer: u8,
+        key_index: u8,
+        delay: u16,
+        per_key_delays: Vec<u16>,
+        mapping: String,
+    ) {
         let layer_idx = (layer - 1) as usize;
 
         if key_index <= 16 {
@@ -274,6 +313,7 @@ impl Keyboard8850 {
             let col = idx % 4;
             if row < 4 && col < 4 {
                 macropad.layers[layer_idx].buttons[row][col].delay = delay;
+                macropad.layers[layer_idx].buttons[row][col].per_key_delays = per_key_delays;
                 macropad.layers[layer_idx].buttons[row][col].mapping = mapping;
             }
         } else if key_index <= 25 {
@@ -288,14 +328,17 @@ impl Keyboard8850 {
                 match action_idx {
                     0 => {
                         knob.ccw.delay = delay;
+                        knob.ccw.per_key_delays = per_key_delays;
                         knob.ccw.mapping = mapping;
                     }
                     1 => {
                         knob.press.delay = delay;
+                        knob.press.per_key_delays = per_key_delays;
                         knob.press.mapping = mapping;
                     }
                     2 => {
                         knob.cw.delay = delay;
+                        knob.cw.per_key_delays = per_key_delays;
                         knob.cw.mapping = mapping;
                     }
                     _ => {}
@@ -304,20 +347,21 @@ impl Keyboard8850 {
         }
     }
 
-    fn decode_packet(&self, packet: &[u8]) -> (u16, String) {
+    fn decode_packet(&self, packet: &[u8]) -> (u16, Vec<u16>, String) {
         // Packet Header is bytes 0-6. Data starts at byte 7.
         // Byte 6 is the Count of sequences.
         if packet.len() < 8 {
-            return (0, "".to_string());
+            return (0, Vec::new(), "".to_string());
         }
 
         // Byte 6 is the Count of sequences.
         let count = packet[6];
         if count == 0 {
-            return (0, "".to_string());
+            return (0, Vec::new(), "".to_string());
         }
 
         let mut mappings = Vec::new();
+        let mut per_key_delays = Vec::new();
         let mut global_delay = 0;
 
         let mut idx = 7;
@@ -331,6 +375,8 @@ impl Keyboard8850 {
             let keycode = packet[idx + 2];
 
             let delay = ((delay_lo as u16) << 8) | (delay_hi as u16);
+            per_key_delays.push(delay);
+
             // Store the delay (assuming uniform delay for chord)
             if delay > 0 {
                 global_delay = delay;
@@ -367,7 +413,7 @@ impl Keyboard8850 {
             i += 1;
         }
 
-        (global_delay, final_mapping)
+        (global_delay, per_key_delays, final_mapping)
     }
 
     fn is_modifier(&self, s: &str) -> bool {
@@ -399,17 +445,27 @@ impl Keyboard8850 {
         "".to_string()
     }
 
-    fn build_key_msg(&self, key_chord: &str, layer: u8, key_pos: u8, delay: u16) -> Result<Vec<u8>> {
+    fn build_key_msg(
+        &self,
+        key_chord: &str,
+        layer: u8,
+        key_pos: u8,
+        delay: u16,
+        per_key_delays: &[u16],
+    ) -> Result<Vec<u8>> {
         let mut msg = vec![0x03, 0xfd, key_pos, layer, 0x01, 0x00];
 
         let mut sequence: Vec<u8> = Vec::new();
         let keys_str: Vec<&str> = key_chord.split(',').collect();
+        let mut key_seq_index = 0;
 
         for k in keys_str {
             let parts: Vec<&str> = k.split('-').collect();
 
             for part in parts {
-                if part.trim().is_empty() { continue; }
+                if part.trim().is_empty() {
+                    continue;
+                }
 
                 let mut code_to_add = 0u8;
 
@@ -427,13 +483,24 @@ impl Keyboard8850 {
                 } else if let Ok(w) = WellKnownCode::from_str(part) {
                     code_to_add = <WellKnownCode as ToPrimitive>::to_u8(&w).unwrap();
                 } else if let Ok(_m) = MediaCode::from_str(part) {
-                    debug!("Media key {} not fully supported in mixed sequence yet for 8850", part);
+                    debug!(
+                        "Media key {} not fully supported in mixed sequence yet for 8850",
+                        part
+                    );
                     continue;
                 }
 
                 if code_to_add != 0 {
+                    // Use per-key delay if available, otherwise default delay
+                    let current_delay = if key_seq_index < per_key_delays.len() {
+                        per_key_delays[key_seq_index]
+                    } else {
+                        delay
+                    };
+                    key_seq_index += 1;
+
                     // Delay is Big Endian based on user analysis (10ms -> 2560ms issue)
-                    let d_bytes = delay.to_be_bytes();
+                    let d_bytes = current_delay.to_be_bytes();
                     sequence.push(d_bytes[0]);
                     sequence.push(d_bytes[1]);
                     sequence.push(code_to_add);
@@ -478,8 +545,9 @@ mod tests {
 
         // Test empty response (count = 0)
         let empty_packet = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00];
-        let (delay, mapping) = keyboard.decode_packet(&empty_packet);
+        let (delay, per_key_delays, mapping) = keyboard.decode_packet(&empty_packet);
         assert_eq!(delay, 0);
+        assert!(per_key_delays.is_empty());
         assert_eq!(mapping, "");
     }
 
@@ -489,9 +557,13 @@ mod tests {
 
         // Test packet with single key (count = 1)
         // [03, fa, key, layer, 01, 00, 01, delay_hi, delay_lo, keycode]
-        let packet_with_key = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04]; // 0x04 = 'a'
-        let (delay, mapping) = keyboard.decode_packet(&packet_with_key);
+        let packet_with_key = [
+            0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04,
+        ]; // 0x04 = 'a'
+        let (delay, per_key_delays, mapping) = keyboard.decode_packet(&packet_with_key);
         assert_eq!(delay, 0);
+        assert_eq!(per_key_delays.len(), 1);
+        assert_eq!(per_key_delays[0], 0);
         assert_eq!(mapping, "a");
     }
 
@@ -500,7 +572,7 @@ mod tests {
         let keyboard = Keyboard8850::new(None, 0).unwrap();
 
         // Test simple key mapping
-        let msg = keyboard.build_key_msg("a", 1, 1, 0).unwrap();
+        let msg = keyboard.build_key_msg("a", 1, 1, 0, &[]).unwrap();
         assert_eq!(msg[0], 0x03);
         assert_eq!(msg[1], 0xfd); // Write command
         assert_eq!(msg[2], 0x01); // Key position
@@ -515,14 +587,50 @@ mod tests {
         let keyboard = Keyboard8850::new(None, 0).unwrap();
 
         // Test modifier + key mapping
-        let msg = keyboard.build_key_msg("ctrl-a", 1, 1, 100).unwrap();
+        let msg = keyboard.build_key_msg("ctrl-a", 1, 1, 100, &[]).unwrap();
         assert_eq!(msg[0], 0x03);
         assert_eq!(msg[1], 0xfd);
         assert_eq!(msg[6], 0x02); // Count of sequences (ctrl + a)
 
-        // Verify delay bytes are correct (100 = 0x0064). Little Endian: 0x64, 0x00
-        assert_eq!(msg[7], 0x64); // Delay low byte
-        assert_eq!(msg[8], 0x00); // Delay high byte
+        // Verify delay bytes are correct (100 = 0x0064). Little Endian: 0x64, 0x00 (wait, big endian now)
+        // In prev turn I fixed endianness to Big Endian. So 100 (0x64) -> 0x00, 0x64
+        // The previous test logic in `search` block:
+        // assert_eq!(msg[7], 0x64); // Delay low byte
+        // assert_eq!(msg[8], 0x00); // Delay high byte
+        // That was checking for Little Endian. My fix in previous turn must have changed this.
+        // Wait, did I fix the test in the previous turn? The condense summary said I fixed `build_key_msg` and `decode_packet`.
+        // The test code shown in `read_file` results (above) shows:
+        // // Verify delay bytes are correct (100 = 0x0064). Little Endian: 0x64, 0x00
+        // assert_eq!(msg[7], 0x64); // Delay low byte
+        // assert_eq!(msg[8], 0x00); // Delay high byte
+        //
+        // This suggests the test was NOT updated in the file I read.
+        // BUT the `build_key_msg` in the file I read has:
+        // let d_bytes = delay.to_be_bytes();
+        // sequence.push(d_bytes[0]); // MSB
+        // sequence.push(d_bytes[1]); // LSB
+        //
+        // `to_be_bytes` for 100 (0x0064) gives [0x00, 0x64].
+        // So msg[7] should be 0x00, msg[8] should be 0x64.
+        // The existing test code in the file expects Little Endian (0x64, 0x00).
+        // This means the test is currently FAILING or I misread.
+        // Ah, `to_be_bytes` returns [0x00, 0x64].
+        // `sequence.push(d_bytes[0])` -> pushes 0x00.
+        // `sequence.push(d_bytes[1])` -> pushes 0x64.
+        // `sequence` is appended to `msg` after header (len 6 or 7).
+        // Header: `vec![0x03, 0xfd, key_pos, layer, 0x01, 0x00]` -> 6 bytes.
+        // `msg.push(num_keys)` -> 7th byte (index 6).
+        // Data starts at index 7.
+        // Index 7: 0x00
+        // Index 8: 0x64
+        // The test says `assert_eq!(msg[7], 0x64);`. This expects 0x64 at index 7.
+        // So the test expects Little Endian.
+        // But the code does Big Endian.
+        // So the test IS failing if run.
+        // I will fix the test expectations here to Big Endian [0x00, 0x64].
+
+        assert_eq!(msg[7], 0x00); // Delay high byte
+        assert_eq!(msg[8], 0x64); // Delay low byte
         assert_eq!(msg[9], 0xf1); // Ctrl modifier code
     }
 
@@ -532,20 +640,48 @@ mod tests {
         let mut macropad = Macropad::new(4, 4, 3);
 
         // Test button mapping
-        keyboard.update_macropad_struct(&mut macropad, 1, 1, 50, "test_key".to_string());
+        keyboard.update_macropad_struct(
+            &mut macropad,
+            1,
+            1,
+            50,
+            vec![],
+            "test_key".to_string(),
+        );
         assert_eq!(macropad.layers[0].buttons[0][0].delay, 50);
         assert_eq!(macropad.layers[0].buttons[0][0].mapping, "test_key");
 
         // Test knob mapping
-        keyboard.update_macropad_struct(&mut macropad, 1, 17, 100, "knob_ccw".to_string());
+        keyboard.update_macropad_struct(
+            &mut macropad,
+            1,
+            17,
+            100,
+            vec![],
+            "knob_ccw".to_string(),
+        );
         assert_eq!(macropad.layers[0].knobs[0].ccw.delay, 100);
         assert_eq!(macropad.layers[0].knobs[0].ccw.mapping, "knob_ccw");
 
-        keyboard.update_macropad_struct(&mut macropad, 1, 18, 150, "knob_press".to_string());
+        keyboard.update_macropad_struct(
+            &mut macropad,
+            1,
+            18,
+            150,
+            vec![],
+            "knob_press".to_string(),
+        );
         assert_eq!(macropad.layers[0].knobs[0].press.delay, 150);
         assert_eq!(macropad.layers[0].knobs[0].press.mapping, "knob_press");
 
-        keyboard.update_macropad_struct(&mut macropad, 1, 19, 200, "knob_cw".to_string());
+        keyboard.update_macropad_struct(
+            &mut macropad,
+            1,
+            19,
+            200,
+            vec![],
+            "knob_cw".to_string(),
+        );
         assert_eq!(macropad.layers[0].knobs[0].cw.delay, 200);
         assert_eq!(macropad.layers[0].knobs[0].cw.mapping, "knob_cw");
     }

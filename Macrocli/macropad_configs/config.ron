@@ -8,7 +8,7 @@
     layers: [
         (
             buttons: [
-                [(delay: 0, mapping: "a,b,c"), (delay: 10, mapping: "d,e,f"), (delay: 20, mapping: "g,h,i"), (delay: 30, mapping: "j,k,l")],
+                [(delay: 0, per_key_delays: [100, 200, 300], mapping: "a,b,c"), (delay: 10, per_key_delays: [150, 250, 350], mapping: "d,e,f"), (delay: 20, mapping: "g,h,i"), (delay: 30, mapping: "j,k,l")],
                 [(delay: 40, mapping: "m,n,o"), (delay: 50, mapping: "p,q,r"), (delay: 60, mapping: "s,t,u"), (delay: 70, mapping: "v,w,x")],
                 [(delay: 80, mapping: "y,z,1"), (delay: 90, mapping: "2,3,4"), (delay: 100, mapping: "5,6,7"), (delay: 110, mapping: "8,9,0")],
                 [(delay: 120, mapping: "a,b,c"), (delay: 130, mapping: "d,e,f"), (delay: 140, mapping: "g,h,i"), (delay: 150, mapping: "j,k,l")],

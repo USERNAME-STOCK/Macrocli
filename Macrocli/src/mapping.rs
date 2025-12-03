@@ -89,6 +89,9 @@ impl Layer {
 pub struct Button {
     /// Delay value (only used if mapping is a keychord; has ',' for key presses)
     pub delay: u16,
+    /// Per-key delays (optional, overrides default delay)
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub per_key_delays: Vec<u16>,
     /// Mapping for the button
     pub mapping: String,
 }
@@ -99,6 +102,7 @@ impl Button {
     pub fn new() -> Self {
         Self {
             delay: 0,
+            per_key_delays: Vec::new(),
             mapping: String::new(),
         }
     }
@@ -296,11 +300,26 @@ impl Mapping {
                     "Warning - 0x8890 devices do not support the delay feature - delay value [{}] will be ignored", btn.delay
                 );
             }
-        } else if btn.delay > consts::MAX_DELAY {
-            return Err(anyhow!(
-                "delay value [{}] must be between 0 and 6000 msec",
-                btn.delay
-            ));
+            if !btn.per_key_delays.is_empty() {
+                println!(
+                    "Warning - 0x8890 devices do not support the per-key delay feature - per_key_delays will be ignored"
+                );
+            }
+        } else {
+            if btn.delay > consts::MAX_DELAY {
+                return Err(anyhow!(
+                    "delay value [{}] must be between 0 and 6000 msec",
+                    btn.delay
+                ));
+            }
+            for d in &btn.per_key_delays {
+                if *d > consts::MAX_DELAY {
+                    return Err(anyhow!(
+                        "per-key delay value [{}] must be between 0 and 6000 msec",
+                        d
+                    ));
+                }
+            }
         }
 
         // check individual keys
@@ -433,6 +452,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 6001,
+                per_key_delays: vec![],
                 mapping: "t,e,s,t".to_string()
             },
             consts::MAX_KEY_PRESSES_884X,
@@ -446,6 +466,7 @@ mod tests {
         Mapping::validate_key_mapping(
             &Button {
                 delay: 6000,
+                per_key_delays: vec![],
                 mapping: "t,e,s,t".to_string(),
             },
             consts::MAX_KEY_PRESSES_884X,
@@ -454,6 +475,7 @@ mod tests {
         Mapping::validate_key_mapping(
             &Button {
                 delay: 1234,
+                per_key_delays: vec![],
                 mapping: "t,e,s,t".to_string(),
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -467,6 +489,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "ctrl-a,shift-s".to_string()
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -476,6 +499,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "alt-a,ctrl-s".to_string()
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -485,6 +509,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "shift-a,alt-s".to_string()
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -498,6 +523,7 @@ mod tests {
         Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "1,2,3,4,5".to_string(),
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -506,6 +532,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "1,2,3,4,5,6".to_string()
             },
             consts::MAX_KEY_PRESSES_8890,
@@ -520,6 +547,7 @@ mod tests {
         Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "ctrl-a,shift-s".to_string(),
             },
             consts::MAX_KEY_PRESSES_884X,
@@ -533,6 +561,7 @@ mod tests {
         Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f,g".to_string(),
             },
             consts::MAX_KEY_PRESSES_884X,
@@ -541,6 +570,7 @@ mod tests {
         assert!(Mapping::validate_key_mapping(
             &Button {
                 delay: 0,
+                per_key_delays: vec![],
                 mapping: "1,2,3,4,5,6,7,8,9,0,a,b,c,d,e,f,g,h".to_string()
             },
             consts::MAX_KEY_PRESSES_884X,
