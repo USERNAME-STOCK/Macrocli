@@ -10,9 +10,9 @@
 
 | Device Model    | Vendor ID | Product ID    | Key Features                                            |
 | --------------- | --------- | ------------- | ------------------------------------------------------- |
-| **K884X/K8842** | 0x1189    | 0x8840/0x8842 | 17-key macros, LED control, Delays                      |
+| **K884X/K8842** | 0x1189    | 0x8840/0x8842 | 17-key macros, LED control, Global Delays               |
 | **K8890**       | 0x1189    | 0x8890        | 5-key macros, Media keys, No delays                     |
-| **K8850**       | 0x514c    | 0x8850        | **18-key macros**, **Variable Delays (0-6s)**, 3 Layers |
+| **K8850**       | 0x514c    | 0x8850        | **18-key macros**, **Per-Key Delays (0-6s)**, 3 Layers  |
 
 ### Device Capabilities
 
@@ -23,8 +23,10 @@
   - **Multi-Layer**: Reads/Writes all 3 layers simultaneously.
   - 16 Buttons + 3 Knobs (CW/CCW/Press) = 25 programmable inputs per layer.
 
-- **K884X**:
+- **K884X (0x8840/0x8842)**:
   - Standard 17-key sequence support.
+  - **Global Delay**: Supports a single delay setting per macro button.
+  - **Read Support**: Can read back configuration from device.
   - Per-layer LED color configuration.
 
 - **K8890**:
