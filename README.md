@@ -19,6 +19,7 @@
 - **K8850 (QingHeng)**:
   - Full support for **18 keys per macro** (buttons & knobs).
   - **Precise Delay Control**: 0ms to 6000ms range.
+  - **Per-Key Delays**: Define specific delays for each step in a macro sequence.
   - **Multi-Layer**: Reads/Writes all 3 layers simultaneously.
   - 16 Buttons + 3 Knobs (CW/CCW/Press) = 25 programmable inputs per layer.
 
@@ -101,9 +102,18 @@ Configurations use the **RON** (Rust Object Notation) format.
             buttons: [
                 // Row 1
                 [
+                    // Simple delay for the whole macro
                     (delay: 0, mapping: "Ctrl+c"),
+
+                    // Advanced: Per-key delays (K8850 only)
+                    // Format: [delay_before_key1, delay_before_key2, ...]
+                    (
+                        delay: 0, // Fallback/Initial delay
+                        per_key_delays: [10, 500, 10],
+                        mapping: "a+b+c"
+                    ),
+
                     (delay: 50, mapping: "Ctrl+v"),
-                    // ... other buttons
                 ],
                 // ... other rows
             ],
@@ -122,6 +132,11 @@ Configurations use the **RON** (Rust Object Notation) format.
 ```
 
 ---
+
+## Roadmap
+
+- [ ] Reverse engineer LED control support for K8850 and K8890 devices.
+- [ ] Add GUI for configuration.
 
 ## Troubleshooting
 
