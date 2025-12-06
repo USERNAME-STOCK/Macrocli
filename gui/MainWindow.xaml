@@ -1,0 +1,220 @@
+<Window x:Class="MacropadGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Macropad Configurator" 
+        Height="750" Width="1000"
+        MinHeight="600" MinWidth="800"
+        Background="{StaticResource BgDeepBrush}"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- HEADER                                                           -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="⌨️" FontSize="28" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <StackPanel>
+                    <TextBlock Text="MACROPAD CONFIGURATOR" 
+                               FontSize="22" FontWeight="Bold" 
+                               Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock x:Name="DeviceInfo" Text="No device connected" 
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                </StackPanel>
+            </StackPanel>
+            <TextBlock x:Name="StatusText" Text="" 
+                       FontSize="11" Foreground="{StaticResource SuccessBrush}"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- TOOLBAR                                                          -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="{StaticResource BgSurfaceBrush}" 
+                CornerRadius="10" Padding="15,10" Margin="0,0,0,15">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <!-- Layer Selector -->
+                    <Border Background="{StaticResource BgCardBrush}" CornerRadius="6" Padding="10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="LAYER" Foreground="{StaticResource TextMutedBrush}" 
+                                       FontSize="10" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <ComboBox x:Name="LayerSelector" Width="90" SelectedIndex="0" 
+                                      SelectionChanged="LayerSelector_Changed">
+                                <ComboBoxItem Content="Layer 1"/>
+                                <ComboBoxItem Content="Layer 2"/>
+                                <ComboBoxItem Content="Layer 3"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Rectangle Width="1" Fill="{StaticResource TextMutedBrush}" Margin="15,5" Opacity="0.3"/>
+                    
+                    <!-- Actions -->
+                    <Button Content="📖 Read Device" Style="{StaticResource MacroButton}" 
+                            Click="ReadFromDevice_Click"/>
+                    <Button Content="🚀 Program" Style="{StaticResource MacroButton}" 
+                            Click="ProgramDevice_Click" Background="{StaticResource AccentBrush}"/>
+                    
+                    <Rectangle Width="1" Fill="{StaticResource TextMutedBrush}" Margin="15,5" Opacity="0.3"/>
+                    
+                    <Button Content="💾 Save" Style="{StaticResource MacroButton}" 
+                            Click="SaveConfig_Click"/>
+                    <Button Content="📂 Load" Style="{StaticResource MacroButton}" 
+                            Click="LoadConfig_Click"/>
+                </StackPanel>
+                
+                <!-- OSD Toggle on right -->
+                <Button Content="👁 OSD Mode" Style="{StaticResource MacroButton}" 
+                        Click="ToggleOsd_Click" HorizontalAlignment="Right"
+                        Background="{StaticResource AccentSecondaryBrush}"
+                        ToolTip="Show floating overlay (always on top)"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- MAIN CONTENT: Buttons + Knobs                                    -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition x:Name="KnobsColumn" Width="200"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Button Grid -->
+            <Border Grid.Column="0" Background="{StaticResource BgBaseBrush}" 
+                    CornerRadius="12" Padding="15" Margin="0,0,15,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock x:Name="ButtonsLabel" Text="BUTTONS" FontWeight="Bold" FontSize="12"
+                                   Foreground="{StaticResource TextMutedBrush}"/>
+                        <TextBlock x:Name="ButtonsCount" Text=" (16)" FontSize="12"
+                                   Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                    
+                    <UniformGrid x:Name="ButtonGrid" Grid.Row="1" Rows="4" Columns="4"/>
+                </Grid>
+            </Border>
+
+            <!-- Knobs Panel - Vertical Layout -->
+            <Border x:Name="KnobsPanel" Grid.Column="1" Background="{StaticResource BgBaseBrush}" 
+                    CornerRadius="12" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock x:Name="KnobsLabel" Grid.Row="0" Text="KNOBS" FontWeight="Bold" FontSize="12"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"/>
+                    
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="KnobsContainer"/>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- EDITOR PANEL                                                     -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3" Background="{StaticResource BgSurfaceBrush}" 
+                CornerRadius="10" Padding="20,15" Margin="0,15,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Selected Key Info -->
+                <StackPanel Grid.Column="0" Margin="0,0,30,0">
+                    <TextBlock Text="SELECTED" FontSize="10" FontWeight="Bold"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="SelectedKeyLabel" Text="None" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource AccentBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+                
+                <!-- Mapping Input -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Label Input -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="LABEL (Display Name)" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="LabelInput" FontSize="13"
+                                 ToolTip="Friendly name shown in OSD (e.g. 'Mute Discord')"/>
+                    </StackPanel>
+                    
+                    <!-- Mapping Input -->
+                    <StackPanel Grid.Row="0" Grid.Column="1">
+                        <TextBlock Text="MACRO (Key Sequence)" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                        <TextBox x:Name="MappingInput" FontFamily="Consolas" FontSize="12"
+                                 ToolTip="e.g. ctrl-c, ctrl-shift-m, f1"/>
+                    </StackPanel>
+                    
+                    <!-- Quick Presets -->
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Quick:" FontSize="10" Foreground="{StaticResource TextMutedBrush}" 
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Button Content="Copy" Tag="ctrl-c" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Paste" Tag="ctrl-v" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Undo" Tag="ctrl-z" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Save" Tag="ctrl-s" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Mute" Tag="volumemute" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Vol+" Tag="volumeup" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                        <Button Content="Vol-" Tag="volumedown" Click="QuickPreset_Click" 
+                                Style="{StaticResource MacroButton}" Padding="8,4" FontSize="10"/>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Apply Button -->
+                <Button Grid.Column="2" Content="✓ Apply" Style="{StaticResource MacroButton}" 
+                        Click="ApplyMapping_Click" Background="{StaticResource SuccessBrush}"
+                        Padding="25,10" FontSize="14" FontWeight="Bold" Margin="20,0,0,0"
+                        VerticalAlignment="Top"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- LOG OUTPUT                                                       -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="4" Background="{StaticResource BgBaseBrush}" 
+                CornerRadius="8" Padding="12" Margin="0,10,0,0" MaxHeight="100">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBox x:Name="LogOutput" IsReadOnly="True" 
+                         Background="Transparent" Foreground="{StaticResource TextMutedBrush}"
+                         BorderThickness="0" FontFamily="Consolas" FontSize="10"
+                         TextWrapping="Wrap" Text="Ready. Click 'Read Device' to load configuration."/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

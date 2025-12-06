@@ -1,6 +1,6 @@
 # Macrocli
 
-**Cross-platform CLI tool for programming Chinese USB macro keyboards without vendor software.**
+**Cross-platform CLI tool and modern GUI for programming Chinese USB macro keyboards without vendor software.**
 
 ## Why This Exists
 
@@ -17,6 +17,8 @@ Inspired by [eccherda/ch552g_mini_keyboard](https://github.com/eccherda/ch552g_m
 - **Multi-layer support** — 3 switchable keyboard layers (75 programmable actions)
 - **Reads configurations back** from device memory
 - **Cross-platform** — Linux/Windows, no vendor drivers required
+- **Modern WPF GUI** — Visual configuration with dark theme, OSD overlay, and dynamic layout
+- **On-Screen Display (OSD)** — Transparent overlay showing button labels in real-time
 
 ## Use Cases
 
@@ -45,30 +47,71 @@ No decompilation or proprietary code was used — pure protocol analysis.
 
 ## Quick Start
 
-```bash
-cargo build --release
-./macrocli show-keys          # Detect device
-./macrocli read               # Read current config
-./macrocli program -c config.ron
+### Download
+
+Go to the [Releases](../../releases) page and download `Macropad_v0.0.1_Win64.zip`.
+
+### Usage
+
+1. Extract the ZIP.
+2. Run `MacropadGUI.exe`.
+3. Click "Read from Device".
+4. Use "👁 OSD" button to toggle the overlay.
+
+### Building from Source
+
+Requirements:
+- Rust (Cargo)
+- .NET 8 SDK
+
+Build Script (PowerShell):
+```powershell
+./build_release.ps1
 ```
 
-Configuration uses RON format. See `/macropad_configs/` for examples.
+This will generate a `release/` folder with the compiled binaries.
 
 ## Project Structure
 
 ```
-src/
-├── keyboard/       # Device-specific protocol implementations
-│   ├── k8850.rs    # QingHeng K8850 (most complete)
-│   ├── k884x.rs    # K8840/K8842 support
-│   └── k8890.rs    # K8890 support
-├── mapping.rs      # Configuration parsing/validation
-└── main.rs         # CLI interface
+src/                     # Rust CLI backend
+├── keyboard/           # Device-specific protocol implementations
+│   ├── k8850.rs        # QingHeng K8850 (most complete)
+│   ├── k884x.rs        # K8840/K8842 support
+│   └── k8890.rs        # K8890 support
+├── mapping.rs          # Configuration parsing/validation
+└── main.rs             # CLI interface
+
+gui/                    # C# WPF GUI frontend
+├── App.xaml            # Application resources
+├── MainWindow.xaml     # Main configuration window
+├── OsdWindow.xaml      # On-Screen Display overlay
+└── EditLabelDialog.xaml # Label editing dialog
 ```
+
+## GUI Features
+
+### 🖥️ GUI Configurator (Windows)
+
+A modern, dark-themed application to configure your device visually.
+- **Dynamic Layout**: Automatically detects 3-key, 9-key, 12-key, and 16-key macropads.
+- **Visual Mapping**: Click buttons to edit them.
+- **OSD (On-Screen Display)**: Semi-transparent, always-on-top overlay to remind you of your shortcuts.
+  - Shows friendly names (Labels) instead of raw codes.
+  - Right-click any button in OSD to rename it instantly.
+- **Profiles**: Button labels are saved locally in `labels.json`.
+- **Portable**: Single executable, no installation required.
+
+### 🦀 CLI (Rust)
+
+Fast and reliable command-line tool.
+- Read/Write configuration to device.
+- Save config to `.ron` files.
+- Cross-platform core (Windows/Linux/macOS - though HID implementation varies).
 
 ## Roadmap
 
-- [ ] GUI configuration tool
+- [x] GUI configuration tool
 - [ ] LED support for K8850
 
 ---

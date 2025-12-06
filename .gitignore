@@ -16,6 +16,7 @@ dist/
 *.swp
 *.swo
 *.swn
+*.user
 
 # OS-specific
 .DS_Store
@@ -33,3 +34,13 @@ Macrocli/CLAUDE.md
 Macrocli/macropad_configs/oldthree_layer_final.ron
 Macrocli/macropad_configs/three_layer_final.ron
 Macrocli/macropad_configs/delays.txt
+
+# C# / .NET
+gui/bin/
+gui/obj/
+gui/.vs/
+*.pdb
+
+# Release artifacts
+release/
+*.zip
