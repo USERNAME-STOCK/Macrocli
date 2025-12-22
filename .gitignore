@@ -44,3 +44,7 @@ gui/.vs/
 # Release artifacts
 release/
 *.zip
+plans/k8850_optimization_solution.md
+plans/k8850_optimized.rs
+plans/k8850_performance_implementation.md
+plans/k8850_performance_summary.md

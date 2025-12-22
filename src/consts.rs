@@ -28,9 +28,6 @@ pub const MAX_KEY_PRESSES_884X: usize = 17;
 ///
 pub const MAX_KEY_PRESSES_8890: usize = 5;
 
-/// Maximum number of key presses for 8850 (65 byte payload / 3 bytes per key ~= 18-19)
-///
-pub const MAX_KEY_PRESSES_8850: usize = 18;
 
 /// Maximum delay for a keypress
 ///

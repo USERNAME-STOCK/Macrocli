@@ -10,8 +10,15 @@ use anyhow::Result;
 use log::{debug, info};
 use num::ToPrimitive;
 use rusb::{Context, DeviceHandle};
-use std::{str::FromStr, thread, time::Duration};
+use std::{str::FromStr, thread, time::Duration, time::Instant};
 use strum::IntoEnumIterator;
+
+// Configurable timing constants for K8850 optimization
+const MAGIC_PACKET_DELAY_MS: u64 = 50;        // Reduced from 200ms
+const EMPTY_READ_DELAY_MS: u64 = 5;           // Reduced from 20ms
+const MAX_EMPTY_READS: u32 = 10;              // Reduced from 50
+const INTER_LAYER_DELAY_MS: u64 = 50;         // Reduced from 200ms
+const EXPECTED_PACKETS_PER_LAYER: u16 = 25;  // 16 buttons + 3 knobs * 3 actions
 
 pub struct Keyboard8850 {
     handle: Option<DeviceHandle<Context>>,
@@ -20,6 +27,9 @@ pub struct Keyboard8850 {
 
 impl Configuration for Keyboard8850 {
     fn read_macropad_config(&mut self, layer: &u8) -> Result<Macropad> {
+        let start_time = Instant::now();
+        info!("Starting K8850 configuration read...");
+
         let mut macropad = Macropad::new(4, 4, 3);
         // Track which layers we have successfully read data for
         let mut received_layers = [false; 4]; // Index 1-3 used for layers 1-3
@@ -47,6 +57,9 @@ impl Configuration for Keyboard8850 {
             vec![1, 2, 3]
         };
 
+        // Calculate expected packets: 16 buttons + 3 knobs * 3 actions = 25 per layer
+        let _total_expected_packets = EXPECTED_PACKETS_PER_LAYER * layers_to_read.len() as u16;
+
         for target_layer in layers_to_read {
             // Check if we already have this layer (e.g. from a previous multi-layer response)
             if received_layers[target_layer as usize] {
@@ -62,18 +75,16 @@ impl Configuration for Keyboard8850 {
             info!("Requesting Layer {}...", target_layer);
             self.send(&current_magic)?;
 
-            // Wait for device to switch modes (increased to 200ms for stability)
-            thread::sleep(Duration::from_millis(200));
+            // Wait for device to switch modes - optimized delay
+            thread::sleep(Duration::from_millis(MAGIC_PACKET_DELAY_MS));
 
             // --- STEP 2: Continuous Read Loop ---
             info!("Reading configuration stream...");
 
             let mut empty_reads = 0;
-            // Increase timeout tolerance: 100ms timeout + 20ms sleep = 120ms per cycle.
-            // 50 attempts * 120ms = 6 seconds.
-            // This ensures we don't stop if there's a pause between layers.
-            let max_empty_reads = 50;
             let mut total_packets = 0;
+            let mut packets_for_current_layer = 0;
+            let mut layer_complete = false;
 
             loop {
                 let mut buf = [0u8; consts::PACKET_SIZE];
@@ -81,57 +92,76 @@ impl Configuration for Keyboard8850 {
 
                 if len == 0 {
                     empty_reads += 1;
-                    if empty_reads >= max_empty_reads {
-                        debug!("No data received for {} attempts, assuming stream end.", max_empty_reads);
+                    if empty_reads >= MAX_EMPTY_READS {
+                        debug!("No data received for {} attempts, assuming stream end.", MAX_EMPTY_READS);
                         break;
                     }
-                    // Small delay between empty reads
-                    thread::sleep(Duration::from_millis(20));
+                    // Optimized delay between empty reads
+                    thread::sleep(Duration::from_millis(EMPTY_READ_DELAY_MS));
                     continue;
                 }
 
                 // Reset empty reads counter on successful read
                 empty_reads = 0;
                 total_packets += 1;
+                packets_for_current_layer += 1;
 
-            // Check if this looks like a valid response
-            if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
-                let key_index = buf[2];
-                let response_layer = buf[3];
+                // Check if this looks like a valid response
+                if buf[0] == 0x03 && buf[1] == 0xfa && buf[2] >= 1 && buf[2] <= 25 {
+                    let key_index = buf[2];
+                    let response_layer = buf[3];
 
-                // The device streams layers 1, 2, 3 sequentially.
-                if response_layer >= 1 && response_layer <= 3 {
-                    // Mark this layer as received
-                    received_layers[response_layer as usize] = true;
+                    // The device streams layers 1, 2, 3 sequentially.
+                    if response_layer >= 1 && response_layer <= 3 {
+                        // Mark this layer as received
+                        received_layers[response_layer as usize] = true;
 
-                    // Only update if we want all layers (0) or this specific layer
-                    if *layer == 0 || *layer == response_layer {
-                        let (delay, per_key_delays, mapping) = self.decode_packet(&buf);
+                        // Only update if we want all layers (0) or this specific layer
+                        if *layer == 0 || *layer == response_layer {
+                            let (delay, per_key_delays, mapping) = self.decode_packet_optimized(&buf);
 
-                        if !mapping.is_empty() {
-                            debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
-                            self.update_macropad_struct(
-                                &mut macropad,
-                                response_layer,
-                                key_index,
-                                delay,
-                                per_key_delays,
-                                mapping,
-                            );
+                            if !mapping.is_empty() {
+                                debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
+                                self.update_macropad_struct(
+                                    &mut macropad,
+                                    response_layer,
+                                    key_index,
+                                    delay,
+                                    per_key_delays,
+                                    mapping,
+                                );
+                            }
                         }
                     }
                 }
-            }
+
+                // Early termination: if we've received expected number of packets for this layer, break
+                if packets_for_current_layer >= EXPECTED_PACKETS_PER_LAYER {
+                    info!("Received expected packets for layer {}, moving to next.", target_layer);
+                    layer_complete = true;
+                    break;
+                }
             }
 
-            info!("Read finished. Processed {} packets.", total_packets);
+            info!("Read finished for layer {}. Processed {} packets.", target_layer, total_packets);
 
             // --- STEP 3: Send Termination Packet ---
             self.send(&self.end_program())?;
 
-            // Small delay before next layer read
-            thread::sleep(Duration::from_millis(200));
+            // Optimized delay before next layer read
+            thread::sleep(Duration::from_millis(INTER_LAYER_DELAY_MS));
+
+            // If we completed this layer early, we can break the outer loop too if we only wanted one layer
+            if layer_complete && *layer > 0 {
+                break;
+            }
         }
+
+        let duration = start_time.elapsed();
+        info!("K8850 configuration read completed in {:?}", duration);
+        info!("Total packets processed: {}", macropad.layers.iter()
+            .map(|layer| layer.buttons.iter().flatten().count() + layer.knobs.len() * 3)
+            .sum::<usize>());
 
         Ok(macropad)
     }
@@ -347,21 +377,22 @@ impl Keyboard8850 {
         }
     }
 
-    fn decode_packet(&self, packet: &[u8]) -> (u16, Vec<u16>, String) {
+    // Optimized version of decode_packet with efficient string operations
+    fn decode_packet_optimized(&self, packet: &[u8]) -> (u16, Vec<u16>, String) {
         // Packet Header is bytes 0-6. Data starts at byte 7.
         // Byte 6 is the Count of sequences.
         if packet.len() < 8 {
-            return (0, Vec::new(), "".to_string());
+            return (0, Vec::new(), String::new());
         }
 
         // Byte 6 is the Count of sequences.
         let count = packet[6];
         if count == 0 {
-            return (0, Vec::new(), "".to_string());
+            return (0, Vec::new(), String::new());
         }
 
-        let mut mappings = Vec::new();
-        let mut per_key_delays = Vec::new();
+        let mut mappings = Vec::with_capacity(count as usize);
+        let mut per_key_delays = Vec::with_capacity(count as usize);
         let mut global_delay = 0;
 
         let mut idx = 7;
@@ -390,8 +421,10 @@ impl Keyboard8850 {
             idx += 3;
         }
 
-        // Reconstruct modifiers (e.g., "ctrl", "c" -> "ctrl-c")
-        let mut final_mapping = String::new();
+        // Pre-allocate final mapping string with estimated capacity
+        let estimated_capacity = mappings.iter().map(|s| s.len()).sum::<usize>() + mappings.len() * 2; // Account for commas and dashes
+        let mut final_mapping = String::with_capacity(estimated_capacity);
+
         let mut i = 0;
         while i < mappings.len() {
             let current = &mappings[i];
@@ -401,7 +434,9 @@ impl Keyboard8850 {
                     if !final_mapping.is_empty() {
                         final_mapping.push(',');
                     }
-                    final_mapping.push_str(&format!("{}-{}", current, next));
+                    final_mapping.push_str(current);
+                    final_mapping.push('-');
+                    final_mapping.push_str(next);
                     i += 2;
                     continue;
                 }
@@ -545,7 +580,7 @@ mod tests {
 
         // Test empty response (count = 0)
         let empty_packet = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00];
-        let (delay, per_key_delays, mapping) = keyboard.decode_packet(&empty_packet);
+        let (delay, per_key_delays, mapping) = keyboard.decode_packet_optimized(&empty_packet);
         assert_eq!(delay, 0);
         assert!(per_key_delays.is_empty());
         assert_eq!(mapping, "");
@@ -560,7 +595,7 @@ mod tests {
         let packet_with_key = [
             0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04,
         ]; // 0x04 = 'a'
-        let (delay, per_key_delays, mapping) = keyboard.decode_packet(&packet_with_key);
+        let (delay, per_key_delays, mapping) = keyboard.decode_packet_optimized(&packet_with_key);
         assert_eq!(delay, 0);
         assert_eq!(per_key_delays.len(), 1);
         assert_eq!(per_key_delays[0], 0);
