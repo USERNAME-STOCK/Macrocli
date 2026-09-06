@@ -13,7 +13,7 @@ use crate::keyboard::{
 };
 use crate::mapping::Macropad;
 use crate::options::Options;
-use crate::options::{Command, LedCommand};
+use crate::options::{Command, LedCommand, LedPerKeyCommand};
 
 use anyhow::{anyhow, ensure, Result};
 use indoc::indoc;
@@ -153,6 +153,25 @@ fn main() -> Result<()> {
                 .context("programming LED on macropad")?;
         }
 
+        Command::LedPerKey(LedPerKeyCommand {
+            mode,
+            layer,
+            colors,
+        }) => {
+            let mut keyboard = open_keyboard(&options).context("opening keyboard")?;
+            let rgb: Vec<(u8, u8, u8)> = colors.iter().map(|c| (c.r, c.g, c.b)).collect();
+
+            keyboard
+                .set_led_per_key(*mode, *layer, &rgb)
+                .context("programming per-key RGB on macropad")?;
+
+            println!(
+                "programmed {} RGB slot(s) on LED layer {} using mode {}",
+                rgb.len(),
+                layer,
+                mode
+            );
+        }
         Command::Read { layer, all_layers } => {
             debug!("dev options: {:?}", options.devel_options);
             let layer_to_read = if *all_layers { 0 } else { *layer };

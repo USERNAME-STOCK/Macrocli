@@ -3,7 +3,7 @@ use crate::{
     keyboard::{Configuration, Keyboard, LedColor, MediaCode, Messages, Modifier, WellKnownCode},
     mapping::Macropad,
 };
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use log::{debug, info};
 use num::ToPrimitive;
 use rusb::{Context, DeviceHandle};
@@ -187,40 +187,28 @@ impl Messages for Keyboard8850 {
         vec![]
     }
 
-    fn program_led(&self, mode: u8, _layer: u8, color: LedColor) -> Vec<u8> {
-        // K8850 uses a 3-packet sequence for LED control.
-        // Structure: 03 fe b0 [seq] [mode] 00 [20 bytes data] ...
-        // Total color data is 60 bytes (split 20/20/20 across 3 packets)
-        // Sequence numbers are 00, 01, 02.
+    fn program_led(&self, mode: u8, layer: u8, color: LedColor) -> Vec<u8> {
+        // Verified K8850 RGB report:
+        // 03 FE B0 <zero-based-layer> <mode>
+        // followed immediately by 16 independent R,G,B triples.
+        // There is no separate/base RGB field.
+        let (r, g, b) = match color {
+            LedColor::Red => (0xff, 0x00, 0x00),
+            LedColor::Orange => (0xff, 0x80, 0x00),
+            LedColor::Yellow => (0xff, 0xff, 0x00),
+            LedColor::Green => (0x00, 0xff, 0x00),
+            LedColor::Cyan => (0x00, 0xff, 0xff),
+            LedColor::Blue => (0x00, 0x00, 0xff),
+            LedColor::Purple => (0x80, 0x00, 0xff),
+        };
 
-        let color_byte = <LedColor as ToPrimitive>::to_u8(&color).unwrap();
-        // Fill 60 bytes with the color value.
-        // Note: Real RGB control might require mapping LedColor to 3-byte RGB values,
-        // but for now we repeat the color code which works for the device's internal palette.
-        let color_data = vec![color_byte; 60];
-
-        let mut all_packets = Vec::new();
-
-        for seq in 0..3 {
-            let mut packet = vec![0x03, 0xfe, 0xb0, seq, mode, 0x00];
-
-            // Append 20 bytes of data for this sequence
-            let start_idx = (seq as usize) * 20;
-            if start_idx + 20 <= color_data.len() {
-                packet.extend_from_slice(&color_data[start_idx..start_idx + 20]);
-            }
-
-            // Pad to 65 bytes
-            while packet.len() < consts::PACKET_SIZE {
-                packet.push(0);
-            }
-
-            all_packets.extend(packet);
+        let mut packet = vec![0x03, 0xfe, 0xb0, layer, mode];
+        for _ in 0..16 {
+            packet.extend_from_slice(&[r, g, b]);
         }
-
-        all_packets
+        packet.resize(consts::PACKET_SIZE, 0);
+        packet
     }
-
     fn end_program(&self) -> Vec<u8> {
         // "03 fd fe ff" indicates end of session/programming block
         let mut msg = vec![0x03, 0xfd, 0xfe, 0xff];
@@ -313,6 +301,28 @@ impl Keyboard for Keyboard8850 {
         Ok(())
     }
 
+    fn set_led_per_key(&mut self, mode: u8, layer: u8, colors: &[(u8, u8, u8)]) -> Result<()> {
+        ensure!(layer <= 2, "K8850 LED layer must be zero-based 0..2");
+        ensure!(mode <= 5, "K8850 LED mode must be 0..5");
+        ensure!(
+            !colors.is_empty() && colors.len() <= 16,
+            "K8850 per-key RGB requires 1..=16 colors"
+        );
+
+        let mut packet = vec![0x03, 0xfe, 0xb0, layer, mode];
+
+        for slot in 0..16 {
+            let (r, g, b) = colors.get(slot).copied().unwrap_or((0, 0, 0));
+            packet.extend_from_slice(&[r, g, b]);
+        }
+
+        packet.resize(consts::PACKET_SIZE, 0);
+        self.send(&packet)?;
+
+        // LED reports apply immediately on the tested 514c:8850 variant.
+        // Do not send the keymap commit packet here.
+        Ok(())
+    }
     fn get_handle(&self) -> &DeviceHandle<Context> {
         self.handle.as_ref().unwrap()
     }
@@ -723,55 +733,23 @@ mod tests {
         assert_eq!(end_msg[3], 0xff);
         assert_eq!(end_msg.len(), 65); // Should be padded to 65 bytes
     }
-
     #[test]
-    fn test_program_led_packets() {
+    fn test_program_led_packet() {
         let keyboard = Keyboard8850::new(None, 0).unwrap();
-        let mode = 0x03; // Middle Glow
-        let color = LedColor::Red; // 0x10
 
-        let packets = keyboard.program_led(mode, 0, color);
+        let packet = keyboard.program_led(1, 0, LedColor::Red);
 
-        // Should generate 3 packets of 65 bytes each
-        assert_eq!(packets.len(), 65 * 3);
+        assert_eq!(packet.len(), 65);
+        assert_eq!(&packet[0..5], &[0x03, 0xfe, 0xb0, 0x00, 0x01]);
 
-        // Verify Packet 0
-        let p0 = &packets[0..65];
-        assert_eq!(p0[0], 0x03);
-        assert_eq!(p0[1], 0xfe);
-        assert_eq!(p0[2], 0xb0);
-        assert_eq!(p0[3], 0x00); // Seq 0
-        assert_eq!(p0[4], mode);
-        assert_eq!(p0[5], 0x00);
-        // Data starts at index 6. Should be 20 bytes of color (0x10)
-        for i in 0..20 {
-            assert_eq!(p0[6 + i], 0x10);
+        // K8850 protocol:
+        // header is followed immediately by 16 independent RGB triples.
+        for slot in 0..16 {
+            let offset = 5 + slot * 3;
+            assert_eq!(&packet[offset..offset + 3], &[0xff, 0x00, 0x00]);
         }
 
-        // Verify Packet 1
-        let p1 = &packets[65..130];
-        assert_eq!(p1[0], 0x03);
-        assert_eq!(p1[1], 0xfe);
-        assert_eq!(p1[2], 0xb0);
-        assert_eq!(p1[3], 0x01); // Seq 1
-        assert_eq!(p1[4], mode);
-        assert_eq!(p1[5], 0x00);
-        // Data starts at index 6
-        for i in 0..20 {
-            assert_eq!(p1[6 + i], 0x10);
-        }
-
-        // Verify Packet 2
-        let p2 = &packets[130..195];
-        assert_eq!(p2[0], 0x03);
-        assert_eq!(p2[1], 0xfe);
-        assert_eq!(p2[2], 0xb0);
-        assert_eq!(p2[3], 0x02); // Seq 2
-        assert_eq!(p2[4], mode);
-        assert_eq!(p2[5], 0x00);
-        // Data starts at index 6
-        for i in 0..20 {
-            assert_eq!(p2[6 + i], 0x10);
-        }
+        // Remaining bytes are padding.
+        assert!(packet[53..].iter().all(|&b| b == 0));
     }
 }

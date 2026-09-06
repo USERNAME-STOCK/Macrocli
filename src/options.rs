@@ -3,6 +3,7 @@ use crate::keyboard::LedColor;
 use crate::parse;
 use clap::{Args, Parser, Subcommand};
 use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Parser)]
 pub struct Options {
@@ -94,6 +95,47 @@ fn parse_address(s: &str) -> std::result::Result<(u8, u8), nom::error::Error<Str
     parse::from_str(parse::address, s)
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RgbColor {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl FromStr for RgbColor {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let named = match value.to_ascii_lowercase().as_str() {
+            "red" => Some((0xff, 0x00, 0x00)),
+            "orange" => Some((0xff, 0x80, 0x00)),
+            "yellow" => Some((0xff, 0xff, 0x00)),
+            "green" => Some((0x00, 0xff, 0x00)),
+            "cyan" => Some((0x00, 0xff, 0xff)),
+            "blue" => Some((0x00, 0x00, 0xff)),
+            "purple" => Some((0x80, 0x00, 0xff)),
+            "white" => Some((0xff, 0xff, 0xff)),
+            "black" => Some((0x00, 0x00, 0x00)),
+            _ => None,
+        };
+
+        if let Some((r, g, b)) = named {
+            return Ok(Self { r, g, b });
+        }
+
+        let hex = value.strip_prefix('#').unwrap_or(value);
+        if hex.len() != 6 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err(format!(
+                "invalid RGB color '{value}'; use #RRGGBB, RRGGBB, or a named color"
+            ));
+        }
+
+        let r = u8::from_str_radix(&hex[0..2], 16).map_err(|e| e.to_string())?;
+        let g = u8::from_str_radix(&hex[2..4], 16).map_err(|e| e.to_string())?;
+        let b = u8::from_str_radix(&hex[4..6], 16).map_err(|e| e.to_string())?;
+        Ok(Self { r, g, b })
+    }
+}
 #[derive(Subcommand)]
 pub enum Command {
     /// Show supported keys and modifiers
@@ -163,8 +205,26 @@ pub enum Command {
 
     /// Select LED backlight mode
     Led(LedCommand),
+
+    /// Program independent RGB colors for K8850 LED slots
+    LedPerKey(LedPerKeyCommand),
 }
 
+#[derive(Parser, Clone, Debug)]
+pub struct LedPerKeyCommand {
+    /// K8850 lighting mode: 0=off, 1=static, 2=reactive, 3=ripple, 4/5=rainbow
+    #[arg(long, default_value_t = 1)]
+    pub mode: u8,
+
+    /// Zero-based K8850 LED layer (0..2)
+    #[arg(long, default_value_t = 0)]
+    pub layer: u8,
+
+    /// One to sixteen colors. Unspecified LED slots are turned off.
+    /// Accepts #RRGGBB, RRGGBB, or named colors such as red/cyan/blue.
+    #[arg(value_name = "COLOR", required = true, num_args = 1..=16)]
+    pub colors: Vec<RgbColor>,
+}
 #[derive(Parser, Clone, Default, Debug)]
 pub struct LedCommand {
     /// Index of LED modes

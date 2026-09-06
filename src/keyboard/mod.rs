@@ -6,7 +6,7 @@ use crate::{config, config::Orientation, consts, mapping::Macropad};
 
 use std::fmt::Display;
 
-use anyhow::{ensure, Result};
+use anyhow::{anyhow, ensure, Result};
 use enumset::{EnumSet, EnumSetType};
 use log::debug;
 use num_derive::{FromPrimitive, ToPrimitive};
@@ -120,6 +120,12 @@ pub trait Keyboard: Messages + Configuration {
     /// `color` - the color to use for the mode
     ///
     fn set_led(&mut self, mode: u8, layer: u8, color: LedColor) -> Result<()>;
+
+    /// Programs independent RGB colors for devices that support per-key RGB.
+    /// K8850 accepts up to 16 RGB slots; unsupported devices return an error.
+    fn set_led_per_key(&mut self, _mode: u8, _layer: u8, _colors: &[(u8, u8, u8)]) -> Result<()> {
+        Err(anyhow!("per-key RGB is not supported by this device"))
+    }
 
     /// Returns the handle of the device
     ///
