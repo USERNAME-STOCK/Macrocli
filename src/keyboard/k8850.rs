@@ -1,9 +1,6 @@
 use crate::{
     consts,
-    keyboard::{
-        Configuration, Keyboard, LedColor, MediaCode, Messages, Modifier,
-        WellKnownCode,
-    },
+    keyboard::{Configuration, Keyboard, LedColor, MediaCode, Messages, Modifier, WellKnownCode},
     mapping::Macropad,
 };
 use anyhow::Result;
@@ -14,11 +11,11 @@ use std::{str::FromStr, thread, time::Duration, time::Instant};
 use strum::IntoEnumIterator;
 
 // Configurable timing constants for K8850 optimization
-const MAGIC_PACKET_DELAY_MS: u64 = 50;        // Reduced from 200ms
-const EMPTY_READ_DELAY_MS: u64 = 5;           // Reduced from 20ms
-const MAX_EMPTY_READS: u32 = 10;              // Reduced from 50
-const INTER_LAYER_DELAY_MS: u64 = 50;         // Reduced from 200ms
-const EXPECTED_PACKETS_PER_LAYER: u16 = 25;  // 16 buttons + 3 knobs * 3 actions
+const MAGIC_PACKET_DELAY_MS: u64 = 50; // Reduced from 200ms
+const EMPTY_READ_DELAY_MS: u64 = 5; // Reduced from 20ms
+const MAX_EMPTY_READS: u32 = 10; // Reduced from 50
+const INTER_LAYER_DELAY_MS: u64 = 50; // Reduced from 200ms
+const EXPECTED_PACKETS_PER_LAYER: u16 = 25; // 16 buttons + 3 knobs * 3 actions
 
 pub struct Keyboard8850 {
     handle: Option<DeviceHandle<Context>>,
@@ -38,15 +35,11 @@ impl Configuration for Keyboard8850 {
         // This puts the device into a state where it accepts read requests.
         // Extracted from Wireshark: 03 fa 19 00 01 06 30 cc ...
         let magic_packet: [u8; 65] = [
-            0x03, 0xfa, 0x19, 0x00, 0x01, 0x06, 0x30, 0xcc,
-            0x85, 0x00, 0xf0, 0xcc, 0x85, 0x00, 0x7c, 0xf2,
-            0x02, 0x69, 0x00, 0x00, 0x00, 0x00, 0x4d, 0x00,
-            0x3c, 0x06, 0xf0, 0xcc, 0x85, 0x00, 0xbd, 0x00,
-            0x00, 0x00, 0x97, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0xe0, 0xcc, 0x85, 0x00, 0x70, 0xcd,
-            0x85, 0x00, 0x30, 0xeb, 0x34, 0x06, 0x08, 0x23,
-            0x3c, 0x06, 0x10, 0xcd, 0x85, 0x00, 0xc7, 0xb6,
-            0x54
+            0x03, 0xfa, 0x19, 0x00, 0x01, 0x06, 0x30, 0xcc, 0x85, 0x00, 0xf0, 0xcc, 0x85, 0x00,
+            0x7c, 0xf2, 0x02, 0x69, 0x00, 0x00, 0x00, 0x00, 0x4d, 0x00, 0x3c, 0x06, 0xf0, 0xcc,
+            0x85, 0x00, 0xbd, 0x00, 0x00, 0x00, 0x97, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0xe0, 0xcc, 0x85, 0x00, 0x70, 0xcd, 0x85, 0x00, 0x30, 0xeb, 0x34, 0x06, 0x08, 0x23,
+            0x3c, 0x06, 0x10, 0xcd, 0x85, 0x00, 0xc7, 0xb6, 0x54,
         ];
 
         // Determine which layers we want to read
@@ -93,7 +86,10 @@ impl Configuration for Keyboard8850 {
                 if len == 0 {
                     empty_reads += 1;
                     if empty_reads >= MAX_EMPTY_READS {
-                        debug!("No data received for {} attempts, assuming stream end.", MAX_EMPTY_READS);
+                        debug!(
+                            "No data received for {} attempts, assuming stream end.",
+                            MAX_EMPTY_READS
+                        );
                         break;
                     }
                     // Optimized delay between empty reads
@@ -118,10 +114,14 @@ impl Configuration for Keyboard8850 {
 
                         // Only update if we want all layers (0) or this specific layer
                         if *layer == 0 || *layer == response_layer {
-                            let (delay, per_key_delays, mapping) = self.decode_packet_optimized(&buf);
+                            let (delay, per_key_delays, mapping) =
+                                self.decode_packet_optimized(&buf);
 
                             if !mapping.is_empty() {
-                                debug!("Layer {} Key {}: {} (Delay: {})", response_layer, key_index, mapping, delay);
+                                debug!(
+                                    "Layer {} Key {}: {} (Delay: {})",
+                                    response_layer, key_index, mapping, delay
+                                );
                                 self.update_macropad_struct(
                                     &mut macropad,
                                     response_layer,
@@ -137,16 +137,22 @@ impl Configuration for Keyboard8850 {
 
                 // Early termination: if we've received expected number of packets for this layer, break
                 if packets_for_current_layer >= EXPECTED_PACKETS_PER_LAYER {
-                    info!("Received expected packets for layer {}, moving to next.", target_layer);
+                    info!(
+                        "Received expected packets for layer {}, moving to next.",
+                        target_layer
+                    );
                     layer_complete = true;
                     break;
                 }
             }
 
-            info!("Read finished for layer {}. Processed {} packets.", target_layer, total_packets);
+            info!(
+                "Read finished for layer {}. Processed {} packets.",
+                target_layer, total_packets
+            );
 
             // --- STEP 3: Send Termination Packet ---
-            self.send(&self.end_program())?;
+            // SAFE-READ TEST: do not commit after configuration read
 
             // Optimized delay before next layer read
             thread::sleep(Duration::from_millis(INTER_LAYER_DELAY_MS));
@@ -159,9 +165,14 @@ impl Configuration for Keyboard8850 {
 
         let duration = start_time.elapsed();
         info!("K8850 configuration read completed in {:?}", duration);
-        info!("Total packets processed: {}", macropad.layers.iter()
-            .map(|layer| layer.buttons.iter().flatten().count() + layer.knobs.len() * 3)
-            .sum::<usize>());
+        info!(
+            "Total packets processed: {}",
+            macropad
+                .layers
+                .iter()
+                .map(|layer| layer.buttons.iter().flatten().count() + layer.knobs.len() * 3)
+                .sum::<usize>()
+        );
 
         Ok(macropad)
     }
@@ -324,7 +335,6 @@ impl Keyboard8850 {
         })
     }
 
-
     fn update_macropad_struct(
         &self,
         macropad: &mut Macropad,
@@ -422,7 +432,8 @@ impl Keyboard8850 {
         }
 
         // Pre-allocate final mapping string with estimated capacity
-        let estimated_capacity = mappings.iter().map(|s| s.len()).sum::<usize>() + mappings.len() * 2; // Account for commas and dashes
+        let estimated_capacity =
+            mappings.iter().map(|s| s.len()).sum::<usize>() + mappings.len() * 2; // Account for commas and dashes
         let mut final_mapping = String::with_capacity(estimated_capacity);
 
         let mut i = 0;
@@ -452,7 +463,10 @@ impl Keyboard8850 {
     }
 
     fn is_modifier(&self, s: &str) -> bool {
-        matches!(s, "ctrl" | "shift" | "alt" | "win" | "rctrl" | "rshift" | "ralt" | "rwin")
+        matches!(
+            s,
+            "ctrl" | "shift" | "alt" | "win" | "rctrl" | "rshift" | "ralt" | "rwin"
+        )
     }
 
     fn keycode_to_string(&self, code: u8) -> String {
@@ -592,9 +606,7 @@ mod tests {
 
         // Test packet with single key (count = 1)
         // [03, fa, key, layer, 01, 00, 01, delay_hi, delay_lo, keycode]
-        let packet_with_key = [
-            0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04,
-        ]; // 0x04 = 'a'
+        let packet_with_key = [0x03, 0xfa, 0x01, 0x01, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04]; // 0x04 = 'a'
         let (delay, per_key_delays, mapping) = keyboard.decode_packet_optimized(&packet_with_key);
         assert_eq!(delay, 0);
         assert_eq!(per_key_delays.len(), 1);
@@ -675,26 +687,12 @@ mod tests {
         let mut macropad = Macropad::new(4, 4, 3);
 
         // Test button mapping
-        keyboard.update_macropad_struct(
-            &mut macropad,
-            1,
-            1,
-            50,
-            vec![],
-            "test_key".to_string(),
-        );
+        keyboard.update_macropad_struct(&mut macropad, 1, 1, 50, vec![], "test_key".to_string());
         assert_eq!(macropad.layers[0].buttons[0][0].delay, 50);
         assert_eq!(macropad.layers[0].buttons[0][0].mapping, "test_key");
 
         // Test knob mapping
-        keyboard.update_macropad_struct(
-            &mut macropad,
-            1,
-            17,
-            100,
-            vec![],
-            "knob_ccw".to_string(),
-        );
+        keyboard.update_macropad_struct(&mut macropad, 1, 17, 100, vec![], "knob_ccw".to_string());
         assert_eq!(macropad.layers[0].knobs[0].ccw.delay, 100);
         assert_eq!(macropad.layers[0].knobs[0].ccw.mapping, "knob_ccw");
 
@@ -709,14 +707,7 @@ mod tests {
         assert_eq!(macropad.layers[0].knobs[0].press.delay, 150);
         assert_eq!(macropad.layers[0].knobs[0].press.mapping, "knob_press");
 
-        keyboard.update_macropad_struct(
-            &mut macropad,
-            1,
-            19,
-            200,
-            vec![],
-            "knob_cw".to_string(),
-        );
+        keyboard.update_macropad_struct(&mut macropad, 1, 19, 200, vec![], "knob_cw".to_string());
         assert_eq!(macropad.layers[0].knobs[0].cw.delay, 200);
         assert_eq!(macropad.layers[0].knobs[0].cw.mapping, "knob_cw");
     }

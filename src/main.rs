@@ -9,7 +9,7 @@ mod parse;
 use crate::consts::PRODUCT_IDS;
 use crate::decoder::Decoder;
 use crate::keyboard::{
-    k884x, k8890, k8850, Keyboard, MediaCode, Modifier, MouseAction, MouseButton, WellKnownCode,
+    k884x, k8850, k8890, Keyboard, MediaCode, Modifier, MouseAction, MouseButton, WellKnownCode,
 };
 use crate::mapping::Macropad;
 use crate::options::Options;
@@ -162,6 +162,57 @@ fn main() -> Result<()> {
                 .context("reading macropad configuration")?;
             Mapping::print(macropad_config);
         }
+
+        Command::RepairLayer1Factory { execute } => {
+            if !*execute {
+                println!("DRY RUN: nothing written.");
+                println!("This command will restore Layer 1 only:");
+                println!("  slot  1 -> A");
+                println!("  slot  2 -> B");
+                println!("  slot  3 -> C");
+                println!("  slot 16 -> P  (knob CCW)");
+                println!("  slot 17 -> Q  (knob press)");
+                println!("  slot 18 -> R  (knob CW)");
+                println!();
+                println!("Run again with --execute to actually write.");
+            } else {
+                repair_k8850_layer1_factory(&options)?;
+            }
+        }
+
+        Command::TestLayer1F13 { execute } => {
+            if !*execute {
+                println!("DRY RUN: nothing written.");
+                println!("This command will change ONLY Layer 1 physical keys:");
+                println!("  slot 1 -> F13 (HID 0x68)");
+                println!("  slot 2 -> F14 (HID 0x69)");
+                println!("  slot 3 -> F15 (HID 0x6A)");
+                println!();
+                println!("Knob slots 16/17/18 are NOT touched.");
+                println!("Layer 2/3 and all other slots are NOT touched.");
+                println!();
+                println!("Run again with --execute to actually write.");
+            } else {
+                test_k8850_layer1_f13(&options)?;
+            }
+        }
+
+        Command::SetLayer1MediaKnob { execute } => {
+            if !*execute {
+                println!("DRY RUN: nothing written.");
+                println!("This command will change ONLY the Layer 1 physical knob:");
+                println!("  slot 16 -> Volume Down (Consumer 0x00EA)");
+                println!("  slot 17 -> Mute        (Consumer 0x00E2)");
+                println!("  slot 18 -> Volume Up   (Consumer 0x00E9)");
+                println!();
+                println!("F13/F14/F15 slots 1/2/3 are NOT touched.");
+                println!("Layer 2/3 and all other slots are NOT touched.");
+                println!();
+                println!("Run again with --execute to actually write.");
+            } else {
+                set_k8850_layer1_media_knob(&options)?;
+            }
+        }
     }
 
     Ok(())
@@ -255,6 +306,415 @@ pub fn find_interface_and_endpoint(
     }
 
     Err(anyhow!("No valid interface/endpoint combination found!"))
+}
+
+fn set_k8850_layer1_media_knob(options: &Options) -> Result<()> {
+    ensure!(
+        options.devel_options.vendor_id == 0x514c,
+        "refusing write: --vendor-id must explicitly be 0x514c"
+    );
+    ensure!(
+        options.devel_options.product_id == Some(0x8850),
+        "refusing write: --product-id must explicitly be 0x8850"
+    );
+
+    let (device, desc, id_product) = find_device(
+        options.devel_options.vendor_id,
+        options.devel_options.product_id,
+    )
+    .context("find 514c:8850 USB device")?;
+
+    ensure!(
+        desc.vendor_id() == 0x514c,
+        "refusing write: detected vendor id is 0x{:04x}, expected 0x514c",
+        desc.vendor_id()
+    );
+    ensure!(
+        id_product == 0x8850 && desc.product_id() == 0x8850,
+        "refusing write: detected product id is 0x{:04x}, expected 0x8850",
+        desc.product_id()
+    );
+    ensure!(
+        desc.num_configurations() == 1,
+        "refusing write: unexpected number of USB configurations"
+    );
+
+    let (intf_num, endpt_addr_out, endpt_addr_in) = find_interface_and_endpoint(
+        &device,
+        options.devel_options.interface_number,
+        options.devel_options.out_endpoint_address,
+        options.devel_options.in_endpoint_address,
+    )?;
+
+    ensure!(
+        intf_num == 0,
+        "refusing write: unexpected interface {}, expected interface 0",
+        intf_num
+    );
+    ensure!(
+        endpt_addr_out == 0x04,
+        "refusing write: unexpected OUT endpoint 0x{:02x}, expected 0x04",
+        endpt_addr_out
+    );
+    ensure!(
+        endpt_addr_in == 0x84,
+        "refusing write: unexpected IN endpoint 0x{:02x}, expected 0x84",
+        endpt_addr_in
+    );
+
+    println!(
+        "Matched 514c:8850 on interface {}, OUT=0x{:02x}, IN=0x{:02x}",
+        intf_num, endpt_addr_out, endpt_addr_in
+    );
+
+    let handle = device.open().context("open USB device")?;
+    let _ = handle.set_auto_detach_kernel_driver(true);
+    handle
+        .claim_interface(intf_num)
+        .context("claim USB interface")?;
+
+    // Native K8850 0xfd media binding:
+    //
+    //   03 fd <slot> <layer> 02 00 02
+    //   00 00 <consumer-usage-low>
+    //   00 00 <consumer-usage-high>
+    //
+    // Consumer usages:
+    //   Mute        = 0x00E2
+    //   Volume Up   = 0x00E9
+    //   Volume Down = 0x00EA
+    //
+    // We touch ONLY the three physical knob slots on Layer 1:
+    //   16 = CCW, 17 = press, 18 = CW.
+    let bindings: [(u8, u16, &str); 3] = [
+        (0x10, 0x00ea, "Knob CCW -> Volume Down"),
+        (0x11, 0x00e2, "Knob Press -> Mute"),
+        (0x12, 0x00e9, "Knob CW -> Volume Up"),
+    ];
+
+    println!("Writing exactly three Layer 1 media-knob bindings...");
+
+    for (slot, usage, description) in bindings {
+        let [low, high] = usage.to_le_bytes();
+
+        let mut msg = vec![0u8; consts::PACKET_SIZE];
+        let header = [
+            0x03, // report ID
+            0xfd, // native K8850 write
+            slot, // firmware slot
+            0x01, // Layer 1
+            0x02, // media / consumer-control macro
+            0x00, // modifier group count
+            0x02, // two 3-byte groups carry the 16-bit usage
+            0x00, 0x00, low, 0x00, 0x00, high,
+        ];
+        msg[..header.len()].copy_from_slice(&header);
+
+        let written = handle
+            .write_interrupt(endpt_addr_out, &msg, consts::DEFAULT_TIMEOUT)
+            .with_context(|| format!("write Layer 1 slot {} ({})", slot, description))?;
+
+        ensure!(
+            written == msg.len(),
+            "short USB write for slot {}: wrote {} of {} bytes",
+            slot,
+            written,
+            msg.len()
+        );
+
+        println!(
+            "  wrote slot {:2} (0x{:02x}): {} [Consumer 0x{:04X}]",
+            slot, slot, description, usage
+        );
+    }
+
+    let mut commit = vec![0u8; consts::PACKET_SIZE];
+    commit[..4].copy_from_slice(&[0x03, 0xfd, 0xfe, 0xff]);
+
+    let written = handle
+        .write_interrupt(endpt_addr_out, &commit, consts::DEFAULT_TIMEOUT)
+        .context("commit Layer 1 media-knob bindings")?;
+
+    ensure!(
+        written == commit.len(),
+        "short USB write while committing: wrote {} of {} bytes",
+        written,
+        commit.len()
+    );
+
+    println!("Commit sent.");
+    println!("Layer 1 media knob write completed.");
+    Ok(())
+}
+
+fn test_k8850_layer1_f13(options: &Options) -> Result<()> {
+    ensure!(
+        options.devel_options.vendor_id == 0x514c,
+        "refusing write: --vendor-id must explicitly be 0x514c"
+    );
+    ensure!(
+        options.devel_options.product_id == Some(0x8850),
+        "refusing write: --product-id must explicitly be 0x8850"
+    );
+
+    let (device, desc, id_product) = find_device(
+        options.devel_options.vendor_id,
+        options.devel_options.product_id,
+    )
+    .context("find 514c:8850 USB device")?;
+
+    ensure!(
+        desc.vendor_id() == 0x514c,
+        "refusing write: detected vendor id is 0x{:04x}, expected 0x514c",
+        desc.vendor_id()
+    );
+    ensure!(
+        id_product == 0x8850 && desc.product_id() == 0x8850,
+        "refusing write: detected product id is 0x{:04x}, expected 0x8850",
+        desc.product_id()
+    );
+    ensure!(
+        desc.num_configurations() == 1,
+        "refusing write: unexpected number of USB configurations"
+    );
+
+    let (intf_num, endpt_addr_out, endpt_addr_in) = find_interface_and_endpoint(
+        &device,
+        options.devel_options.interface_number,
+        options.devel_options.out_endpoint_address,
+        options.devel_options.in_endpoint_address,
+    )?;
+
+    ensure!(
+        intf_num == 0,
+        "refusing write: unexpected interface {}, expected interface 0",
+        intf_num
+    );
+    ensure!(
+        endpt_addr_out == 0x04,
+        "refusing write: unexpected OUT endpoint 0x{:02x}, expected 0x04",
+        endpt_addr_out
+    );
+    ensure!(
+        endpt_addr_in == 0x84,
+        "refusing write: unexpected IN endpoint 0x{:02x}, expected 0x84",
+        endpt_addr_in
+    );
+
+    println!(
+        "Matched 514c:8850 on interface {}, OUT=0x{:02x}, IN=0x{:02x}",
+        intf_num, endpt_addr_out, endpt_addr_in
+    );
+
+    let handle = device.open().context("open USB device")?;
+    let _ = handle.set_auto_detach_kernel_driver(true);
+    handle
+        .claim_interface(intf_num)
+        .context("claim USB interface")?;
+
+    // ONLY the three physical Layer-1 key slots are changed.
+    // HID keyboard usages:
+    //   F13 = 0x68
+    //   F14 = 0x69
+    //   F15 = 0x6A
+    let bindings: [(u8, u8, &str); 3] = [
+        (0x01, 0x68, "Key1 -> F13"),
+        (0x02, 0x69, "Key2 -> F14"),
+        (0x03, 0x6a, "Key3 -> F15"),
+    ];
+
+    println!("Writing exactly three Layer 1 test bindings...");
+
+    for (slot, hid_code, description) in bindings {
+        let mut msg = vec![0u8; consts::PACKET_SIZE];
+        let header = [
+            0x03,     // report ID
+            0xfd,     // native K8850 write
+            slot,     // firmware slot
+            0x01,     // Layer 1
+            0x01,     // keyboard binding
+            0x00,     // modifier count
+            0x01,     // one 3-byte group
+            0x00,     // delay high
+            0x00,     // delay low
+            hid_code, // HID keyboard usage
+        ];
+        msg[..header.len()].copy_from_slice(&header);
+
+        let written = handle
+            .write_interrupt(endpt_addr_out, &msg, consts::DEFAULT_TIMEOUT)
+            .with_context(|| format!("write Layer 1 slot {} ({})", slot, description))?;
+
+        ensure!(
+            written == msg.len(),
+            "short USB write for slot {}: wrote {} of {} bytes",
+            slot,
+            written,
+            msg.len()
+        );
+
+        println!("  wrote slot {:2} (0x{:02x}): {}", slot, slot, description);
+    }
+
+    let mut commit = vec![0u8; consts::PACKET_SIZE];
+    commit[..4].copy_from_slice(&[0x03, 0xfd, 0xfe, 0xff]);
+
+    let written = handle
+        .write_interrupt(endpt_addr_out, &commit, consts::DEFAULT_TIMEOUT)
+        .context("commit F13/F14/F15 Layer 1 test bindings")?;
+
+    ensure!(
+        written == commit.len(),
+        "short USB write while committing: wrote {} of {} bytes",
+        written,
+        commit.len()
+    );
+
+    println!("Commit sent.");
+    println!("F13/F14/F15 Layer 1 test write completed.");
+    Ok(())
+}
+
+fn repair_k8850_layer1_factory(options: &Options) -> Result<()> {
+    // This helper is intentionally narrow. It only restores the six physical
+    // controls observed on this specific 3-key + 1-knob 514c:8850 variant.
+    ensure!(
+        options.devel_options.vendor_id == 0x514c,
+        "refusing write: --vendor-id must explicitly be 0x514c"
+    );
+    ensure!(
+        options.devel_options.product_id == Some(0x8850),
+        "refusing write: --product-id must explicitly be 0x8850"
+    );
+
+    let (device, desc, id_product) = find_device(
+        options.devel_options.vendor_id,
+        options.devel_options.product_id,
+    )
+    .context("find 514c:8850 USB device")?;
+
+    ensure!(
+        desc.vendor_id() == 0x514c,
+        "refusing write: detected vendor id is 0x{:04x}, expected 0x514c",
+        desc.vendor_id()
+    );
+    ensure!(
+        id_product == 0x8850 && desc.product_id() == 0x8850,
+        "refusing write: detected product id is 0x{:04x}, expected 0x8850",
+        desc.product_id()
+    );
+    ensure!(
+        desc.num_configurations() == 1,
+        "refusing write: unexpected number of USB configurations"
+    );
+
+    let (intf_num, endpt_addr_out, endpt_addr_in) = find_interface_and_endpoint(
+        &device,
+        options.devel_options.interface_number,
+        options.devel_options.out_endpoint_address,
+        options.devel_options.in_endpoint_address,
+    )?;
+
+    // These exact endpoints were observed on the user's physical unit.
+    ensure!(
+        intf_num == 0,
+        "refusing write: unexpected interface {}, expected interface 0",
+        intf_num
+    );
+    ensure!(
+        endpt_addr_out == 0x04,
+        "refusing write: unexpected OUT endpoint 0x{:02x}, expected 0x04",
+        endpt_addr_out
+    );
+    ensure!(
+        endpt_addr_in == 0x84,
+        "refusing write: unexpected IN endpoint 0x{:02x}, expected 0x84",
+        endpt_addr_in
+    );
+
+    println!(
+        "Matched 514c:8850 on interface {}, OUT=0x{:02x}, IN=0x{:02x}",
+        intf_num, endpt_addr_out, endpt_addr_in
+    );
+
+    let handle = device.open().context("open USB device")?;
+    let _ = handle.set_auto_detach_kernel_driver(true);
+    handle
+        .claim_interface(intf_num)
+        .context("claim USB interface")?;
+
+    // Native 0xfd keyboard-binding format:
+    //   03 fd <slot> <layer> 01 00 01 00 00 <hid-code> ...
+    //
+    // Only Layer 1 and only the six physical slots are touched.
+    //
+    // Factory references copied from the intact Layer 2/3 raw mappings:
+    //   slot  1 = A = HID 0x04
+    //   slot  2 = B = HID 0x05
+    //   slot  3 = C = HID 0x06
+    //   slot 16 = P = HID 0x13  (knob CCW)
+    //   slot 17 = Q = HID 0x14  (knob press)
+    //   slot 18 = R = HID 0x15  (knob CW)
+    let bindings: [(u8, u8, &str); 6] = [
+        (0x01, 0x04, "Key1 -> A"),
+        (0x02, 0x05, "Key2 -> B"),
+        (0x03, 0x06, "Key3 -> C"),
+        (0x10, 0x13, "Knob CCW -> P"),
+        (0x11, 0x14, "Knob Press -> Q"),
+        (0x12, 0x15, "Knob CW -> R"),
+    ];
+
+    println!("Writing exactly six Layer 1 recovery bindings...");
+
+    for (slot, hid_code, description) in bindings {
+        let mut msg = vec![0u8; consts::PACKET_SIZE];
+        let header = [
+            0x03,     // report ID
+            0xfd,     // native K8850 write
+            slot,     // firmware slot
+            0x01,     // Layer 1
+            0x01,     // keyboard binding
+            0x00,     // modifier count
+            0x01,     // one 3-byte group
+            0x00,     // delay high
+            0x00,     // delay low
+            hid_code, // HID keyboard usage
+        ];
+        msg[..header.len()].copy_from_slice(&header);
+
+        let written = handle
+            .write_interrupt(endpt_addr_out, &msg, consts::DEFAULT_TIMEOUT)
+            .with_context(|| format!("write Layer 1 slot {} ({})", slot, description))?;
+
+        ensure!(
+            written == msg.len(),
+            "short USB write for slot {}: wrote {} of {} bytes",
+            slot,
+            written,
+            msg.len()
+        );
+
+        println!("  wrote slot {:2} (0x{:02x}): {}", slot, slot, description);
+    }
+
+    // Commit once after the six bindings.
+    let mut commit = vec![0u8; consts::PACKET_SIZE];
+    commit[..4].copy_from_slice(&[0x03, 0xfd, 0xfe, 0xff]);
+
+    let written = handle
+        .write_interrupt(endpt_addr_out, &commit, consts::DEFAULT_TIMEOUT)
+        .context("commit Layer 1 recovery bindings")?;
+
+    ensure!(
+        written == commit.len(),
+        "short USB write while committing: wrote {} of {} bytes",
+        written,
+        commit.len()
+    );
+
+    println!("Commit sent.");
+    println!("Layer 1 factory recovery write completed.");
+    Ok(())
 }
 
 fn open_keyboard(options: &Options) -> Result<Box<dyn Keyboard>> {
