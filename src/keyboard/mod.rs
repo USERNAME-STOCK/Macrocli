@@ -1,6 +1,6 @@
 pub(crate) mod k884x;
-pub(crate) mod k8890;
 pub(crate) mod k8850;
+pub(crate) mod k8890;
 
 use crate::{config, config::Orientation, consts, mapping::Macropad};
 

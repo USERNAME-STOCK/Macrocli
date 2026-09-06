@@ -132,6 +132,35 @@ pub enum Command {
         all_layers: bool,
     },
 
+    /// Restore only the six physical controls of the 3-key + 1-knob
+    /// 514c:8850 pad on Layer 1 to the factory A/B/C + P/Q/R mapping.
+    ///
+    /// This is a deliberately narrow recovery command.
+    RepairLayer1Factory {
+        /// Actually perform the writes. Without this flag, nothing is written.
+        #[arg(long, default_value_t = false)]
+        execute: bool,
+    },
+
+    /// Test F13/F14/F15 on the three physical Layer-1 keys only.
+    ///
+    /// Knob slots and all other slots/layers are left untouched.
+    TestLayer1F13 {
+        /// Actually perform the writes. Without this flag, nothing is written.
+        #[arg(long, default_value_t = false)]
+        execute: bool,
+    },
+
+    /// Configure only the Layer-1 physical knob as media volume controls.
+    ///
+    /// CCW = Volume Down, press = Mute, CW = Volume Up.
+    /// The three F13/F14/F15 key slots and every other slot/layer are untouched.
+    SetLayer1MediaKnob {
+        /// Actually perform the writes. Without this flag, nothing is written.
+        #[arg(long, default_value_t = false)]
+        execute: bool,
+    },
+
     /// Select LED backlight mode
     Led(LedCommand),
 }
